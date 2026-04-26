@@ -18,6 +18,7 @@ public static class MelonHelper
     {
         Log("Initializing android support module");
         TranspilerSupport.TranspilerSupport.Initialize(new Harmony(Others.harmony_id));
+        PCInputSystem.PCInputSystem.Init();
     }
     /// <summary>
      /// Reads a file in the apk assets directory

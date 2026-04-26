@@ -25,15 +25,25 @@ public class WrappedBehaviour
         Il2CPPBehaviour.DontDestroyOnLoad(gameObject);
     }
 
-    public static T FindObjectOfType<T>(bool includeInactive = false) where T : UnityEngine.Object
+    public static T FindObjectOfType<T>(bool includeInactive = false) where T : Object
     {
-        T[] arr = FindObjectsOfType<T>(includeInactive);
-        return arr.Length != 0 ? arr[0] : null;
+        var obj = Object.FindObjectOfType(Il2CppType.Of<T>(), includeInactive);
+        if (obj == null)
+            return null;
+        return obj.Cast<T>();
     }
     public static T FindObjectOfType<T>(bool includeInactive = false, bool stub = true) where T : WrappedBehaviour
     {
-        T[] arr = FindObjectsOfType<T>(includeInactive);
-        return arr.Length != 0 ? arr[0] : null;
+        Il2CPPBehaviour[] il2cpp = FindObjectsOfType<Il2CPPBehaviour>(includeInactive);
+        Type type = typeof(T);
+        foreach (var beh in il2cpp)
+        {
+            if (beh.WrappedType.IsAssignableTo(type))
+            {
+                return (T)beh.WrappedBehaviour;
+            }
+        }
+        return null;
     }
     public static T[] FindObjectsOfType<T>(bool includeInactive = false, bool stub = true) where T : WrappedBehaviour
     {
@@ -74,6 +84,10 @@ public class WrappedBehaviour
         return Wrapper.StartCoroutine(enumerator.ToIL2CPP());
     }
     public void StopCoroutine(Coroutine coroutine)
+    {
+        Wrapper.StopCoroutine(coroutine);
+    }
+    public void StopCoroutine(string coroutine)
     {
         Wrapper.StopCoroutine(coroutine);
     }

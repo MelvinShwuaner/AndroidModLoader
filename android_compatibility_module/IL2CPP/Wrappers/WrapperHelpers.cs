@@ -184,7 +184,7 @@ public static class WrapperHelper
 	}
 }
 
-public class WrapperResolver : IDisposable
+public sealed class WrapperResolver : IDisposable
 {
 	static void AddChildren(Transform transform, List<Transform> children)
 	{

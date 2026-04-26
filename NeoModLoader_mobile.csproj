@@ -63,6 +63,9 @@
       <Reference Include="RSG">
         <HintPath>android-assembly-dependencies\Il2CppRSG.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>android-assembly-dependencies\UnityEngine.IMGUIModule.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine.UnityWebRequestModule">
         <HintPath>android-assembly-dependencies\UnityEngine.UnityWebRequestModule.dll</HintPath>
       </Reference>

@@ -2,12 +2,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using HarmonyLib.Public.Patching;
-using MonoMod.Cil;
-using NeoModLoader.constants;
-using NeoModLoader.services;
-using NeoModLoader.utils;
-using NeoModLoader.utils.Lists;
 namespace NeoModLoader.AndroidCompatibilityModule.TranspilerSupport;
 
 /// <summary>
@@ -26,7 +20,6 @@ public class MirrorData
     internal MirrorData(Delegate method, List<MethodInfo> transpilers)
     {
         Method = method;
-        Transpilers = new SortedList<MethodInfo>(HarmonyUtils.SortByPriority, transpilers);
     }
 
     private MirrorData()
@@ -34,7 +27,6 @@ public class MirrorData
     }
 
     public readonly Delegate Method;
-    internal readonly SortedList<MethodInfo> Transpilers;
 
     /// <summary>
     /// gets all transpilers applied to this Mirror

@@ -72,6 +72,7 @@ public static class Paths
     /// </summary>
     public static readonly string ModsConfigPath = Combine(PersistentDataPath, "mods_config");
 
+    public static readonly string PCInputConfigPath = Combine(PersistentDataPath, "PCInputConfig.json");
     /// <summary>
     /// Path to BepInEx plugins folder
     /// </summary>

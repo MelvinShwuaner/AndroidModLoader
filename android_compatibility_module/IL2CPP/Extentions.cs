@@ -314,7 +314,7 @@ public static class Extentions
     public static T AddComponent<T>(this GameObject gameObject) where T : WrappedBehaviour
     {
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
-        return behaviour.CreateWrapperIfNull(typeof(T)) as T;
+        return behaviour.CreateWrapper<T>();
     }
     public static List<Transform> GetChildren(this Transform transform)
     {

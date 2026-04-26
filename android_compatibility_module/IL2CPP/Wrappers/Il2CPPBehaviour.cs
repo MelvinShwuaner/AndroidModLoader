@@ -8,7 +8,7 @@ using Object = Il2CppSystem.Object;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
 [RegisterTypeInIl2Cpp]
-public class Il2CPPBehaviour : MonoBehaviour
+public sealed class Il2CPPBehaviour : MonoBehaviour
 {
     public Il2CPPBehaviour(IntPtr ptr) : base(ptr)
     {
@@ -44,6 +44,11 @@ public class Il2CPPBehaviour : MonoBehaviour
     public void Update()
     {
         update?.Invoke(WrappedBehaviour);
+    }
+
+    public void LateUpdate()
+    {
+        lateupdate?.Invoke(WrappedBehaviour);
     }
 
     public void OnGUI()
@@ -85,6 +90,7 @@ public class Il2CPPBehaviour : MonoBehaviour
         ongui = GetWrappedMethod("OnGUI");
         onEnable = GetWrappedMethod("OnEnable");
         onDisable = GetWrappedMethod("OnDisable");
+        lateupdate = GetWrappedMethod("LateUpdate");
         return Behaviour;
     }
     [HideFromIl2Cpp]
@@ -92,12 +98,18 @@ public class Il2CPPBehaviour : MonoBehaviour
     {
         return WrappedBehaviour ?? SetWrappedBehaviour((WrappedBehaviour)Activator.CreateInstance(WrappedType));
     }
+    [HideFromIl2Cpp]
+    internal W CreateWrapper<W>() where W : WrappedBehaviour
+    {
+        return SetWrappedBehaviour(Activator.CreateInstance<W>());
+    }
     private WrappedAction update;
     private WrappedAction start;
     private WrappedAction awake;
     private WrappedAction ongui;
     private WrappedAction onEnable;
     private WrappedAction onDisable;
+    private WrappedAction lateupdate;
     public Type WrappedType { [HideFromIl2Cpp] get; [HideFromIl2Cpp] private set; }
     public WrappedBehaviour WrappedBehaviour {  [HideFromIl2Cpp]get;  [HideFromIl2Cpp]private set; }
 }
