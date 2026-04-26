@@ -11,81 +11,89 @@ namespace NeoModLoader.AndroidCompatibilityModule.PCInputSystem;
 
 static class PCInputPatches
 {
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKey), new []{typeof(KeyCode)})]
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKey), new[] { typeof(KeyCode) })]
     [HarmonyPrefix]
     public static bool GetButton(KeyCode key, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(key))
+        if (!PCInputSystem.ContainsInput(key))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(key) == KeyState.Hold;
         return false;
     }
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown),  new []{typeof(KeyCode)})]
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown), new[] { typeof(KeyCode) })]
     [HarmonyPrefix]
     public static bool GetButtonDown(KeyCode key, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(key))
+        if (!PCInputSystem.ContainsInput(key))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(key) == KeyState.Pressed;
         return false;
     }
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp),  new []{typeof(KeyCode)})]
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp), new[] { typeof(KeyCode) })]
     [HarmonyPrefix]
     public static bool GetButtonUp(KeyCode key, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(key))
+        if (!PCInputSystem.ContainsInput(key))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(key) == KeyState.LetGo;
         return false;
     }
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKey), new []{typeof(string)})]
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKey), new[] { typeof(string) })]
     [HarmonyPrefix]
     public static bool GetButton2(string name, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(name))
+        if (!PCInputSystem.ContainsInput(name))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(name) == KeyState.Hold;
         return false;
     }
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown),  new []{typeof(string)})]
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown), new[] { typeof(string) })]
     [HarmonyPrefix]
     public static bool GetButtonDown2(string name, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(name))
+        if (!PCInputSystem.ContainsInput(name))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(name) == KeyState.Pressed;
         return false;
     }
-    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp),  new []{typeof(string)})]
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp), new[] { typeof(string) })]
     [HarmonyPrefix]
     public static bool GetButtonUp2(string name, ref bool __result)
     {
-        if(!PCInputSystem.ContainsInput(name))
+        if (!PCInputSystem.ContainsInput(name))
         {
             return true;
         }
+
         __result = PCInputSystem.GetState(name) == KeyState.LetGo;
         return false;
     }
 
-    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.isTouchOverUI))]
-    [HarmonyPostfix]
-    public static void isTouchOverUI(ref bool __result)
+    [HarmonyPatch(typeof(MoveCamera), nameof(MoveCamera.updateMobileCamera))]
+    [HarmonyPrefix]
+    public static bool CanMoveCamera()
     {
-        if (PCInputSystem.Editing)
-        {
-            __result = true;
-        }
+        return !PCInputSystem.Editing;
     }
 }
 
@@ -143,6 +151,11 @@ public class PCInput
     public void SetPos(Vector2 pos)
     {
         ButtonRect = new Rect(pos.x, pos.y, ButtonRect.width, ButtonRect.height);
+    }
+
+    public void SetSize(Vector2 size)
+    {
+        ButtonRect = new Rect(ButtonRect.x, ButtonRect.y, size.x, size.y);
     }
 }
 
@@ -260,7 +273,6 @@ public class PCInputSystem : WrappedBehaviour
     private static Rect MainWindow;
     private static GUI.WindowFunction MainWindowFunction;
     private static PCInputConfig Config;
-    private static GUIStyle TextStyle;
     public static void Init()
     {
         Harmony.CreateAndPatchAll(typeof(PCInputPatches), Others.harmony_id);
@@ -272,9 +284,8 @@ public class PCInputSystem : WrappedBehaviour
     static void InitGUI()
     {
         MainWindowFunction = C<GUI.WindowFunction>(ManagePCInputs);
-        TextStyle = new GUIStyle();
-        MainButton = new Rect(Screen.width-50, Screen.height-50,50, 50);
-        MainWindow = new Rect(0, 0, Screen.width/10, Screen.height);
+        MainButton = new Rect(Screen.width-100, 0,100, 100);
+        MainWindow = new Rect(0, 0, Screen.width/2.5f, Screen.height/5);
     }
 
     public static void SaveConfig(string Path)
@@ -285,19 +296,12 @@ public class PCInputSystem : WrappedBehaviour
     void BeginEditing()
     {
         global::Config.paused = true;
-        foreach (var button in FindObjectsOfType<Button>())
-        {
-            button.enabled = false;
-        }
     }
 
     void StopEditing()
     {
         global::Config.paused = false;
-        foreach (var button in FindObjectsOfType<Button>())
-        {
-            button.enabled = true;
-        }
+        global::Config.ui_main_hidden = false;
     }
     private void OnGUI()
     {
@@ -320,6 +324,7 @@ public class PCInputSystem : WrappedBehaviour
         }
         if (Editing)
         {
+            global::Config.ui_main_hidden = true;
             GUI.Window(67, MainWindow, MainWindowFunction, "PCInputManager");
             MoveInputs();
         }
@@ -371,7 +376,7 @@ public class PCInputSystem : WrappedBehaviour
 
     private static void DrawKeySelector()
     {
-        if (GUILayout.Button("Select Key"))
+        if (GUILayout.Button($"Selected Key: {pendingKey}"))
         {
             keySelectorOpen = !keySelectorOpen;
         }
@@ -396,16 +401,23 @@ public class PCInputSystem : WrappedBehaviour
         GUILayout.EndScrollView();
     }
 
-    static bool CheckTouch()
+    enum TouchState
     {
-        if (Input.touchCount == 0) return true;
+        NoTouch,
+        InWindow,
+        Touch,
+        MissTouch
+    }
+    static TouchState CheckTouch()
+    {
+        if (Input.touchCount == 0) return TouchState.NoTouch;
         
         var touch = Input.GetTouch(0);
         var pos = touch.position;
         pos.y = Screen.height - pos.y;
         if (MainWindow.Contains(pos))
         {
-            return true;
+            return TouchState.InWindow;
         }
         foreach (var pair in Config.Inputs)
         {
@@ -414,22 +426,35 @@ public class PCInputSystem : WrappedBehaviour
             if (button.ButtonRect.Contains(pos))
             {
                 SelectedInput = button;
-                return true;
+                return TouchState.Touch;
             }
         }
-        return false;
+        return TouchState.MissTouch;
     }
+
+    private TouchState PrevState;
     void MoveInputs()
     {
-        if (!CheckTouch())
+        var state = CheckTouch();
+        if (state != TouchState.Touch)
         {
-            SelectedInput = null;
+            switch (state)
+            {
+                case TouchState.MissTouch when PrevState == TouchState.NoTouch:
+                    SelectedInput = null;
+                    PrevState = state;
+                    return;
+                case TouchState.InWindow:
+                case TouchState.NoTouch:
+                    PrevState = state;
+                    return;
+            }
         }
         if (SelectedInput == null) return;
         var touch = Input.GetTouch(0);
         var pos = touch.position;
         pos.y = Screen.height - pos.y;
-        SelectedInput.SetPos(pos);
+        SelectedInput.SetPos(pos - SelectedInput.ButtonRect.size/2);
     }
     public static PCInput CreateNewButton(string Name, KeyCode Code, Rect rect = default)
     {
@@ -441,31 +466,53 @@ public class PCInputSystem : WrappedBehaviour
         Config.Inputs.Add(Code, input);
         return input;
     }
-    static void ManagePCInputs(string windowid)
+
+    private static float currentX = 50;
+    private static float currentY = 50;
+    static void ManagePCInputs(int windowid)
     {
         if (GUILayout.Button("Save Settings"))
         {
             SaveConfig(Paths.PCInputConfigPath);
         }
         DrawKeySelector();
+        GUILayout.Label("Button Size X");
+        currentX = GUILayout.DoHorizontalSlider(
+            currentX,
+            0,
+            300,
+            GUI.skin.horizontalSlider,
+            GUI.skin.horizontalSliderThumb,
+            new[] { GUILayout.Width(200), GUILayout.Height(20) }
+        );
+        GUILayout.Label("Button Size Y");
+        currentY = GUILayout.DoHorizontalSlider(
+            currentY,
+            0,
+            300,
+            GUI.skin.horizontalSlider,
+            GUI.skin.horizontalSliderThumb,
+            new[] { GUILayout.Width(200), GUILayout.Height(20) }
+        );
         if (SelectedInput != null)
         {
-            SelectedInput.Name = GUILayout.TextField(SelectedInput.Name, TextStyle);
-            if (pendingKey != KeyCode.None)
-            {
-                var old = GetKey(SelectedInput);
-                if (!old.Equals(default(KeyCode)))
-                    Config.Inputs.Remove(old);
-                        
-                Config.Inputs[pendingKey] = SelectedInput;
-            }
+            SelectedInput.SetSize(new Vector2(currentX, currentY));
+          //  SelectedInput.Name = GUILayout.TextField(SelectedInput.Name, TextStyle); text field currently not supported
+            if (pendingKey == KeyCode.None) return;
+            var old = GetKey(SelectedInput);
+            if (old == pendingKey || old == default) return;
+            Config.Inputs.Remove(old);
+            Config.Inputs[pendingKey] = SelectedInput;
+            SelectedInput.Name = pendingKey.ToString();
+            pendingKey = KeyCode.None;
         }
         else
         {
-           string newname = GUILayout.TextField("New Button Name", TextStyle);
+          // string newname = GUILayout.TextField("New Button Name", TextStyle); text field currently not supported
            if (GUILayout.Button("Create New Button") && pendingKey != KeyCode.None)
            {
-               CreateNewButton(newname, pendingKey);
+               SelectedInput = CreateNewButton(pendingKey.ToString(), pendingKey, new Rect(Screen.width-(currentX+200), 200+currentY, currentX, currentY));
+               pendingKey = KeyCode.None;
            }
         }
     }
