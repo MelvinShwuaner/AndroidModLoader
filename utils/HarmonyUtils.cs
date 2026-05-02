@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.utils.instpredictors;
+using NeoModLoader.utils.Collections;
 
 namespace NeoModLoader.utils;
 

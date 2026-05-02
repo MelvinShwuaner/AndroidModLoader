@@ -1,12 +1,27 @@
 using System.Text;
 using NeoModLoader.api;
+using NeoModLoader.utils.Collections;
 
 namespace NeoModLoader.utils;
-
+/// <summary>
+/// a Mod Priority
+/// </summary>
+public static class ModPriority
+{
+    public const int Last = 800;
+    public const int VeryLow = 700;
+    public const int Low = 600;
+    public const int LowerThanNormal = 500;
+    public const int Normal = 400;
+    public const int HigherThanNormal = 300;
+    public const int High = 200;
+    public const int VeryHigh = 100;
+    public const int First = 0;
+}
 /// <summary>
 ///     Dependency node for mod dependency graph.
 /// </summary>
-public class ModDependencyNode
+public class ModDependencyNode : INode<ModDependencyNode>
 {
     /// <summary>
     ///     Mods that depend on this mod.
@@ -91,6 +106,12 @@ public class ModDependencyNode
             collectAdditionReferences(dependency, true, pReferences, pVisited);
         }
     }
+
+    public HashSet<ModDependencyNode> BeforeThis => depend_on;
+
+    public HashSet<ModDependencyNode> AfterThis => depend_by;
+
+    public int Priority => mod_decl.ModPriority ?? ModPriority.Normal;
 }
 
 /// <summary>
@@ -236,57 +257,6 @@ internal static class ModDependencyUtils
 
     public static List<ModDependencyNode> SortModsCompileOrderFromDependencyTopology(IEnumerable<ModDependencyNode> pNodes)
     {
-        HashSet<ModDependencyNode> selected_nodes = new(pNodes);
-        Dictionary<ModDependencyNode, int> node_in_degree = new();
-        Queue<ModDependencyNode> queue = new();
-        foreach (ModDependencyNode node in selected_nodes.OrderBy(node => node.mod_decl.UID))
-        {
-            int in_degree = node.depend_on.Count(dependency => selected_nodes.Contains(dependency));
-            node_in_degree.Add(node, in_degree);
-            if (in_degree == 0)
-            {
-                queue.Enqueue(node);
-            }
-        }
-
-        List<ModDependencyNode> mods = new();
-        while (queue.Count > 0)
-        {
-            ModDependencyNode curr_node = queue.Dequeue();
-            mods.Add(curr_node);
-
-            foreach (ModDependencyNode depend_on_node in curr_node.depend_by.OrderBy(node => node.mod_decl.UID))
-            {
-                if (!selected_nodes.Contains(depend_on_node))
-                {
-                    continue;
-                }
-
-                if (!node_in_degree.ContainsKey(depend_on_node))
-                {
-                    continue;
-                }
-
-                node_in_degree[depend_on_node]--;
-                if (node_in_degree[depend_on_node] == 0)
-                {
-                    queue.Enqueue(depend_on_node);
-                }
-            }
-        }
-
-        if (mods.Count == selected_nodes.Count)
-        {
-            return mods;
-        }
-
-        foreach (ModDependencyNode remaining_node in selected_nodes
-                     .Where(node => !mods.Contains(node))
-                     .OrderBy(node => node.mod_decl.UID))
-        {
-            mods.Add(remaining_node);
-        }
-
-        return mods;
+        return NodeComparer<ModDependencyNode>.Sort(pNodes);
     }
 }

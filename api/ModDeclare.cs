@@ -66,13 +66,15 @@ public class ModDeclare
     /// <param name="pOptionalDependencies"></param>
     /// <param name="pIncompatibleWith"></param>
     /// <param name="pIsWorkshopLoaded"></param>
+    /// <param name="modPriority"></param>
     public ModDeclare(string pName, string pAuthor, string pIconPath, string pVersion, string pDescription,
         string pFolderPath, string[] pDependencies, string[] pOptionalDependencies, string[] pIncompatibleWith,
-        bool pIsWorkshopLoaded = false)
+        bool pIsWorkshopLoaded = false, int modPriority = utils.ModPriority.Normal)
     {
         Name = pName;
         Author = pAuthor;
         IconPath = pIconPath;
+        ModPriority = modPriority;
         Version = pVersion;
         Description = pDescription;
         Dependencies = pDependencies ?? Array.Empty<string>();
@@ -124,6 +126,7 @@ public class ModDeclare
         IncompatibleWith ??= Array.Empty<string>();
 
         UID = modDeclare.UID;
+        ModPriority = modDeclare.ModPriority ?? utils.ModPriority.Normal;
         if (string.IsNullOrEmpty(UID)) UID = $"{Author}.{Name}";
         UID = ModDependencyUtils.ParseDepenNameToPreprocessSymbol(UID);
 
@@ -158,7 +161,11 @@ public class ModDeclare
     /// </summary>
     [JsonProperty("GUID")]
     public string UID { get; private set; }
-
+    /// <summary>
+    /// the mod priority. the lower, the higher the priority, see <see cref="utils.ModPriority"/>
+    /// </summary>
+    [JsonProperty("priority")]
+    public int? ModPriority { get; private set; }
     /// <summary>
     /// Mod Author. Add locale of $"{Author}_{language}" can make it display different name in different language
     /// </summary>

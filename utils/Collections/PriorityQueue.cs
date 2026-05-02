@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace NeoModLoader.utils;
+namespace NeoModLoader.utils.Collections;
 
 /// <summary>
 ///     A simple PriorityQueue implementation with binary heap, not thread-safe

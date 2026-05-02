@@ -10,6 +10,7 @@ using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
+using NeoModLoader.utils.Sounds;
 using UnityEngine;
 #if IL2CPP
 using Il2CppInterop.Runtime.Injection;
@@ -115,11 +116,10 @@ public class WorldBoxMod : MonoBehaviour
             ModUploadAuthenticationService.AutoAuth();
         
         HarmonyUtils._init();
-        MelonHelper.Init();
-        HarmonyLib.Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id); ;
-        HarmonyLib.Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        HarmonyLib.Harmony.CreateAndPatchAll(typeof(CustomAudioManager), Others.harmony_id);
-        
+        Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
+        Harmony.CreateAndPatchAll(typeof(FMODPatches), Others.harmony_id);
+
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
         SmoothLoader.add(C<MapLoaderAction>(() =>
         {

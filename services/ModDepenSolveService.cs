@@ -25,11 +25,10 @@ internal static class ModDepenSolveService
         {
             startup_plan.DesiredEnabledSnapshot[node.mod_decl.UID] = node.DesiredEnabled;
         }
-
         List<ModDeclare> requested_roots = graph.nodes
             .Where(node => node.DesiredEnabled)
             .Select(node => node.mod_decl)
-            .OrderBy(mod => mod.UID)
+            .OrderBy(mod => mod.ModPriority)
             .ToList();
 
         foreach (ModDeclare requested_root in requested_roots)
