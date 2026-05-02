@@ -48,7 +48,11 @@ public static class ResourcesPatch
 
     internal static void Initialize()
     {
+        #if !IL2CPP
         AssetManager._instance.add(SoundLibrary.MainLibrary = new SoundLibrary(),"CustomAudio");
+        #else
+        SoundLibrary.MainLibrary = new SoundLibrary();
+        #endif
         FMODHelper.InitFMOD();
         
         tree = new ResourceTree();

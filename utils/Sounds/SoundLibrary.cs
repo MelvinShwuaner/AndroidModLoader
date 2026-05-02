@@ -1,8 +1,10 @@
+using NeoModLoader.AndroidCompatibilityModule;
+
 namespace NeoModLoader.utils.Sounds;
 /// <summary>
 /// an Audio library. multiple can be used
 /// </summary>
-public class SoundLibrary : AssetLibrary<SoundAsset>
+public class SoundLibrary : MonoAssetLibrary<SoundAsset>
 {
     /// <summary>
     /// the main audio library. updates by itself

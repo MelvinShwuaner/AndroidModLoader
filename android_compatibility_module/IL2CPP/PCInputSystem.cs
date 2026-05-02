@@ -524,6 +524,10 @@ public class PCInputSystem : WrappedBehaviour
         return default;
     }
 
+    public static void DeleteButton(KeyCode code)
+    {
+        Config.Inputs.Remove(code);
+    }
     public static bool DoesRectIntersectAnything(Rect rect)
     {
         if (MainButton.Overlaps(rect) || MainWindow.Overlaps(rect))
@@ -574,6 +578,12 @@ public class PCInputSystem : WrappedBehaviour
         );
         if (SelectedInput != null)
         {
+            if (GUILayout.Button("Delete Button"))
+            {
+                DeleteButton(GetKey(SelectedInput));
+                SelectedInput = null;
+                return;
+            }
             SelectedInput.SetSize(new Vector2(currentX, currentY));
           //  SelectedInput.Name = GUILayout.TextField(SelectedInput.Name, TextStyle); text field currently not supported
             if (pendingKey == KeyCode.None) return;

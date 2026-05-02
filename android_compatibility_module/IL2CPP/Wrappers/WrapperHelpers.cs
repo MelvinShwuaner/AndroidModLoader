@@ -225,6 +225,10 @@ public sealed class WrapperResolver : IDisposable
 			return;
 		}
 		Type WrappedType = orig.WrappedType;
+		if (clone.SlotIndex.Get() == orig.SlotIndex.Get())
+		{
+			clone.SlotIndex.Set(0); //clone doesn't have to resolve itself now
+		}
 		WrappedBehaviour cloned = clone.CreateWrapperIfNull(WrappedType);
 		var fields = WrappedType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		foreach (var field in fields)

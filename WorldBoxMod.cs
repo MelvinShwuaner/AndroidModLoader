@@ -118,7 +118,6 @@ public class WorldBoxMod : MonoBehaviour
         HarmonyUtils._init();
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
-        Harmony.CreateAndPatchAll(typeof(FMODPatches), Others.harmony_id);
 
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
         SmoothLoader.add(C<MapLoaderAction>(() =>
@@ -131,6 +130,7 @@ public class WorldBoxMod : MonoBehaviour
             WrappedPowersTab._init();
             NCMSCompatibleLayer.PreInit();
             ModInfoUtils.InitializeModCompileCache();
+            MelonHelper.Init();
         }), "Initialize NeoModLoader");
         ModEnablePlan startup_enable_plan = null;
         List<ModDependencyNode> mod_nodes = new();

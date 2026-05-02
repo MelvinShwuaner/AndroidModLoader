@@ -1,6 +1,7 @@
 using System.Reflection;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppInterop.Runtime.Injection;
+using Il2CppInterop.Runtime.InteropTypes.Fields;
 using MelonLoader;
 using NeoModLoader.utils.Collections;
 using UnityEngine;
@@ -9,7 +10,10 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 [RegisterTypeInIl2Cpp]
 public sealed class Il2CPPBehaviour : MonoBehaviour
 {
-    private static SlotList<Il2CPPBehaviour> Pool = new();
+    /// <summary>
+    /// always start the first index with null because the index is 0 by default
+    /// </summary>
+    private static SlotList<Il2CPPBehaviour> Pool = [null];
     public Il2CPPBehaviour(IntPtr ptr) : base(ptr)
     {
     }
@@ -38,7 +42,7 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
     /// <summary>
     /// do not touch this. this is public for Unity to see
     /// </summary>
-    public int SlotIndex = -1;
+    public Il2CppValueField<int> SlotIndex;
     [HideFromIl2Cpp]
     public void CopyFrom(Il2CPPBehaviour other)
     {
@@ -47,22 +51,22 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
     [HideFromIl2Cpp]
     public bool IsSlotIndexValid()
     {
-        return !Pool.Slots.IsEmpty(SlotIndex);
+        return SlotIndex > 0 && !Pool.Slots.IsEmpty(SlotIndex);
     }
     [HideFromIl2Cpp]
-    void CheckIndex()
+    public void CheckIndex()
     {
         if (IsSlotIndexValid())
         {
-            if (WrappedBehaviour == null)
+            if (Pool.Slots[SlotIndex].Item != this)
             {
                 CopyFrom(Pool.Slots[SlotIndex].Item);
-                SlotIndex = Pool.Slots.Add(this);
+                SlotIndex.Set(Pool.Slots.Add(this));
             }
         }
         else
         {
-            SlotIndex = Pool.Slots.Add(this);
+            SlotIndex.Set(Pool.Slots.Add(this));
         }
     }
     public void Awake()
@@ -72,7 +76,6 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         awake?.Invoke(WrappedBehaviour);
         canawake = false;
     }
-
     public void OnDestroy()
     {
         if (IsSlotIndexValid())

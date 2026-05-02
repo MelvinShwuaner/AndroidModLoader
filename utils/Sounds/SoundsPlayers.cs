@@ -3,6 +3,7 @@ using FMOD;
 #else
 using Il2CppFMOD;
 #endif
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.services;
 using NeoModLoader.utils.Collections;
 using Newtonsoft.Json;
@@ -76,7 +77,7 @@ public class SoundHandler
         Channels.Clear();
     }
 }
-public class SoundAsset : Asset
+public class SoundAsset : MonoAsset
 {
     public readonly SlotList<ISoundPlayer> Players = new();
     public readonly SoundHandler Handler = new();
