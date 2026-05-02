@@ -294,7 +294,7 @@ public class PCInputSystem : WrappedBehaviour
     {
         MainWindowFunction = C<GUI.WindowFunction>(ManagePCInputs);
         MainButton = new Rect(0, 0,75, 75);
-        MainWindow = new Rect(0, 0, Screen.width/2.5f, Screen.height/5);
+        MainWindow = new Rect(0, 0, Screen.width/2.5f, Screen.height/4.5f);
     }
 
     public static void SaveConfig(string Path)
@@ -385,9 +385,7 @@ public class PCInputSystem : WrappedBehaviour
             }
 
             if (inside)
-            {
                 button.Press();
-            }
             else
                 button.Release();
         }
@@ -591,7 +589,7 @@ public class PCInputSystem : WrappedBehaviour
           // string newname = GUILayout.TextField("New Button Name", TextStyle); text field currently not supported
            if (GUILayout.Button("Create New Button") && pendingKey != KeyCode.None)
            {
-               SelectedInput = CreateNewButton(pendingKey.ToString(), pendingKey, new Rect(Screen.width-(currentX+200), 200+currentY, currentX, currentY));
+               SelectedInput = CreateNewButton(pendingKey.ToString(), pendingKey, GetNextButtonRect(new Vector2(currentX, currentY)));
                pendingKey = KeyCode.None;
            }
         }
