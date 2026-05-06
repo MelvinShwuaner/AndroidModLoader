@@ -71,14 +71,6 @@ public class WrappedBehaviour
     }
     [JsonIgnore]
     public Il2CPPBehaviour Wrapper { get; internal set; }
-    /// <summary>
-    /// blocks the wrapped behaviour from resolving itself when instantiated, should be used when this is not the root of its prefab
-    /// </summary>
-    /// <remarks>if Awake() is called after this, the Wrapper will re-add itself to the pool and will resolve itself</remarks>
-    public void DontResolveSelf()
-    {
-        Il2CPPBehaviour.RemoveFromPool(Wrapper);
-    }
     public C GetComponent<C>() where C : Component
     {
         return Wrapper.GetComponent<C>();
@@ -102,13 +94,9 @@ public class WrappedBehaviour
     public void StopAllCoroutines(){
         Wrapper.StopAllCoroutines();
     }
-    public static T Instantiate<T>(T obj, Transform parent = null, bool positionstays = false) where T : Component
+    public static T Instantiate<T>(T obj, Transform parent = null, bool positionstays = false) where T : Object
     {
-        return WrapperHelper.Instantiate(obj, parent, positionstays);
-    }
-    public static GameObject Instantiate(GameObject obj, Transform parent = null, bool positionstays = false)
-    {
-        return WrapperHelper.Instantiate(obj, parent, positionstays);
+        return Object.Instantiate(obj, parent, positionstays);
     }
     public static void Destroy(UnityEngine.Object Object)
     {

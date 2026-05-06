@@ -1,7 +1,9 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
+using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.constants;
 using UnityEngine;
 using Object = UnityEngine.Object;
 public class ObjectPoolGenericMono<T> where T : WrappedBehaviour
@@ -139,12 +141,53 @@ namespace NeoModLoader.AndroidCompatibilityModule
 	using static WrapperHelper;
 	public static class WrapperHelper
 	{
+		internal static void Init()
+		{
+			Harmony harmony = new Harmony(Others.harmony_id);
+			var patch = new HarmonyMethod(ClonePostfix);
+			void Patch(string name)
+			{
+				harmony.Patch(AccessTools.Method(typeof(Object), name), null, patch);
+			}
+			harmony.Patch(
+				AccessTools.Method(typeof(Object), nameof(Object.Instantiate),
+					[typeof(Object), typeof(Transform), typeof(bool)]), null,  new HarmonyMethod(InstantiatePostfix));
+			Patch(nameof(Object.Internal_InstantiateSingleWithParent));
+			Patch(nameof(Object.Internal_InstantiateSingle));
+			Patch(nameof(Object.Internal_CloneSingle));
+		}
+		public static void ClonePostfix(Object data, Object __result)
+		{
+			Resolve(data, __result);
+		}
+		public static void InstantiatePostfix(Object original, Object __result)
+		{
+			Resolve(original, __result);
+		}
+		public static void Resolve(Object orig, Object clone)
+		{
+			if (orig == null || clone == null)
+			{
+				return;
+			}
+			GameObject obj = orig.TryCast<GameObject>();
+			if (obj != null)
+			{
+				WrapperResolver.ResolveInstantiate(obj, clone.Cast<GameObject>());
+				return;
+			}
+			Component comp = orig.TryCast<Component>();
+			if (comp != null)
+			{
+				WrapperResolver.ResolveInstantiate(comp.gameObject, clone.Cast<Component>().gameObject);
+			}
+		}
 		public static WrappedAction CreateWrappedAction(MethodInfo method)
 		{
 			var param = Expression.Parameter(typeof(WrappedBehaviour), "beh");
 
 			var call = Expression.Call(
-				Expression.Convert(param, method.DeclaringType), // cast WrappedBehaviour → ConcurrentLogHandle
+				Expression.Convert(param, method.DeclaringType),
 				method
 			);
 			return Expression.Lambda<WrappedAction>(call, param).Compile();
@@ -154,26 +197,8 @@ namespace NeoModLoader.AndroidCompatibilityModule
 			where T : WrappedBehaviour
 		{
 			Il2CPPBehaviour il2cpp = Object.Instantiate(original.Wrapper, parent, worldPositionStays);
-			WrapperResolver.ResolveInstantiate(original.gameObject, il2cpp.gameObject);
 			return (T)il2cpp.WrappedBehaviour;
 		}
-
-		public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true, bool stub = true)
-			where T : Component
-		{
-			Component il2cpp = Object.Instantiate(original, parent, worldPositionStays);
-			WrapperResolver.ResolveInstantiate(original.gameObject, il2cpp.gameObject);
-			return (T)il2cpp;
-		}
-
-		public static GameObject Instantiate(GameObject original, Transform parent, bool worldPositionStays = true,
-			bool stub = true)
-		{
-			GameObject il2cpp = Object.Instantiate(original, parent, worldPositionStays);
-			WrapperResolver.ResolveInstantiate(original, il2cpp);
-			return il2cpp;
-		}
-
 		public static object GetWrappedComponent(GameObject Object, Type WrappedType)
 		{
 			foreach (Il2CPPBehaviour beh in Object.GetComponents<Il2CPPBehaviour>())
@@ -182,27 +207,31 @@ namespace NeoModLoader.AndroidCompatibilityModule
 				{
 					continue;
 				}
-
 				if (beh.WrappedType.IsAssignableTo(WrappedType))
 				{
 					return beh.WrappedBehaviour;
 				}
 			}
-
 			return null;
 		}
 
-		public static int Getindex(Component beh, GameObject obj)
+		public static int GetIndex(Component beh, GameObject obj)
 		{
 			var arr = obj.GetComponents(beh.GetType().C());
 			int result = arr.GetIndex(beh);
 			return result;
 		}
-	}
-
-	public sealed class WrapperResolver : IDisposable
-	{
-		static void AddChildren(Transform transform, List<Transform> children)
+		public static void AddChildren(Transform transform, List<Transform> children, out bool il2CppDetected)
+		{
+			il2CppDetected = false;
+			foreach (Transform child in transform.GetChildren())
+			{
+				children.Add(child);
+				AddChildren(child, children, out bool childDetected);
+				il2CppDetected |= childDetected || child.HasComponent<Il2CPPBehaviour>();
+			}
+		}
+		public static void AddChildren(Transform transform, List<Transform> children)
 		{
 			foreach (Transform child in transform.GetChildren())
 			{
@@ -210,111 +239,115 @@ namespace NeoModLoader.AndroidCompatibilityModule
 				AddChildren(child, children);
 			}
 		}
-
-		List<Transform> OrigObjects;
-		List<Transform> ClonedObjects;
+	}
+	public sealed class WrapperResolver : IDisposable
+	{
+		private static readonly Dictionary<Type, FieldInfo[]> fieldCache = new();
+		private Il2CppSystem.Collections.Generic.Dictionary<Transform, Transform> origToClone; //use il2cpp dict to hash mismatches
 
 		public static void ResolveInstantiate(GameObject orig, GameObject clone)
 		{
-			WrapperResolver resolver = new WrapperResolver(orig, clone);
-			resolver.Resolve();
+			using var resolver = new WrapperResolver(orig, clone, out bool shouldResolve);
+			if (shouldResolve) resolver.Resolve();
 			resolver.Dispose();
 		}
 
-		public WrapperResolver(GameObject orig, GameObject clone)
+		public WrapperResolver(GameObject orig, GameObject clone, out bool shouldResolve)
 		{
-			OrigObjects = new List<Transform> { orig.transform };
-			ClonedObjects = new List<Transform> { clone.transform };
-			AddChildren(orig.transform, OrigObjects);
-			AddChildren(clone.transform, ClonedObjects);
-		}
+			var origTransforms = new List<Transform> { orig.transform };
+			AddChildren(orig.transform, origTransforms, out bool detected);
 
+			if (!detected && !orig.HasComponent<Il2CPPBehaviour>())
+			{
+				shouldResolve = false;
+				origToClone = null;
+				return;
+			}
+			shouldResolve = true;
+			
+			var cloneTransforms = new List<Transform> { clone.transform };
+			AddChildren(clone.transform, cloneTransforms);
+
+			origToClone = new Il2CppSystem.Collections.Generic.Dictionary<Transform, Transform>(origTransforms.Count);
+			for (int i = 0; i < origTransforms.Count; i++)
+				origToClone[origTransforms[i]] = cloneTransforms[i];
+		}
 		public void Resolve()
 		{
-			for (int i = 0; i < OrigObjects.Count; i++)
+			foreach (var (origTransform, cloneTransform) in origToClone)
 			{
-				Il2CPPBehaviour[] origbeh = OrigObjects[i].GetComponents<Il2CPPBehaviour>();
-				if (origbeh == null) continue;
-				Il2CPPBehaviour[] clonedbeh = ClonedObjects[i].GetComponents<Il2CPPBehaviour>();
-				for (int j = 0; j < origbeh.Length; j++)
-				{
-					Clone(origbeh[j], clonedbeh[j]);
-				}
+				var origBehaviours = origTransform.GetComponents<Il2CPPBehaviour>();
+				if (!origBehaviours.IsValid()) continue;
+
+				var clonedBehaviours = cloneTransform.GetComponents<Il2CPPBehaviour>();
+				for (int j = 0; j < origBehaviours.Length; j++)
+					Clone(origBehaviours[j], clonedBehaviours[j]);
 			}
 		}
 
 		public void Clone(Il2CPPBehaviour orig, Il2CPPBehaviour clone)
 		{
 			WrappedBehaviour beh = orig.WrappedBehaviour;
-			if (beh == null)
-			{
-				return;
-			}
+			if (beh == null) return;
 
-			Type WrappedType = orig.WrappedType;
-			if (clone.SlotIndex.Value == orig.SlotIndex.Value)
-			{
-				clone.SlotIndex.Set(0); //clone doesn't have to resolve itself now
-			}
-			else if (clone.IsSlotForMe())
-			{
-				return; //clone already resolved itself
-			}
+			Type wrappedType = orig.WrappedType;
+			WrappedBehaviour cloned = clone.CreateWrapperIfNull(wrappedType);
 
-			WrappedBehaviour cloned = clone.CreateWrapperIfNull(WrappedType);
-			var fields = WrappedType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-			foreach (var field in fields)
+			foreach (var field in GetCachedFields(wrappedType))
 			{
+				var fieldObj = field.GetValue(beh);
+				if (fieldObj == null) continue;
+
 				Type type = field.FieldType;
-				var fieldobj = field.GetValue(beh);
-				if (fieldobj == null)
-				{
-					continue;
-				}
+
 				if (type == typeof(GameObject))
 				{
-					var obj = (GameObject)fieldobj;
-					field.SetValue(cloned, ResolveGameObject(obj));
+					field.SetValue(cloned, ResolveGameObject((GameObject)fieldObj));
 				}
 				else if (type == typeof(Transform))
 				{
-					var obj = (Transform)fieldobj;
-					field.SetValue(cloned, ResolveGameObject(obj.gameObject).transform);
+					field.SetValue(cloned, ResolveGameObject(((Transform)fieldObj).gameObject).transform);
 				}
 				else if (typeof(Component).IsAssignableFrom(type))
 				{
-					var obj = (Component)fieldobj;
+					var obj = (Component)fieldObj;
 					field.SetValue(cloned,
-						ResolveGameObject(obj.gameObject).GetComponent(type, Getindex(obj, obj.gameObject)));
+						ResolveGameObject(obj.gameObject).GetComponent(type, GetIndex(obj, obj.gameObject)));
 				}
 				else if (typeof(WrappedBehaviour).IsAssignableFrom(type))
 				{
-					var obj = (WrappedBehaviour)fieldobj;
-					field.SetValue(cloned,
-						((Il2CPPBehaviour)ResolveGameObject(obj.gameObject).GetComponent(typeof(Il2CPPBehaviour),
-							Getindex(obj.Wrapper, obj.gameObject))).CreateWrapperIfNull(type));
+					var obj = (WrappedBehaviour)fieldObj;
+					var il2Cpp = (Il2CPPBehaviour)ResolveGameObject(obj.gameObject).GetComponent(typeof(Il2CPPBehaviour),
+						GetIndex(obj.Wrapper, obj.gameObject));
+					field.SetValue(cloned, il2Cpp.CreateWrapperIfNull(type));
 				}
 				else
 				{
-					field.SetValue(cloned, fieldobj);
+					field.SetValue(cloned, fieldObj);
 				}
 			}
+		}
+
+		private static FieldInfo[] GetCachedFields(Type type)
+		{
+			if (!fieldCache.TryGetValue(type, out var fields))
+			{
+				fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+				fieldCache[type] = fields;
+			}
+			return fields;
 		}
 
 		public GameObject ResolveGameObject(GameObject orig)
 		{
-			if (!OrigObjects.Contains(orig.transform))
-			{
-				return orig;
-			}
-
-			return ClonedObjects[OrigObjects.IndexOf(orig.transform)].gameObject;
+			return origToClone.TryGetValue(orig.transform, out var cloneTransform)
+				? cloneTransform.gameObject
+				: orig;
 		}
 
 		public void Dispose()
 		{
-			OrigObjects = null;
-			ClonedObjects = null;
+			origToClone = null;
 		}
 	}
 }

@@ -316,15 +316,12 @@ public static class Extentions
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return behaviour.CreateWrapper<T>();
     }
-    public static List<Transform> GetChildren(this Transform transform)
+    public static IEnumerable<Transform> GetChildren(this Transform transform)
     {
-        List<Transform> list = new List<Transform>();
         for (int i = 0; i < transform.GetChildCount(); i++)
         {
-            Transform child = transform.GetChild(i);
-            list.Add(child);
+            yield return transform.GetChild(i);
         }
-        return list;
     }
     public static T GetWrappedComponent<T>(this GameObject obj)
     {

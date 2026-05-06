@@ -19,6 +19,7 @@ public static class MelonHelper
         Log("Initializing android support module");
         TranspilerSupport.TranspilerSupport.Initialize(new Harmony(Others.harmony_id));
         PCInputSystem.PCInputSystem.Init();
+        WrapperHelper.Init();
     }
     /// <summary>
      /// Reads a file in the apk assets directory
@@ -30,7 +31,7 @@ public static class MelonHelper
         APKAssetManager.Initialize();
         if (!APKAssetManager.DoesAssetExist(assetPath))
         {
-            MelonLogger.Warning($"File not found in APK assets: {assetPath}");
+            LogWarning($"File not found in APK assets: {assetPath}");
             return null;
         }
         var assetBytes = APKAssetManager.GetAssetBytes(assetPath);

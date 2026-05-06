@@ -10,20 +10,6 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 [RegisterTypeInIl2Cpp]
 public sealed class Il2CPPBehaviour : MonoBehaviour
 {
-    /// <summary>
-    /// always start the first index with null because the index is 0 by default
-    /// </summary>
-    private static SlotList<Il2CPPBehaviour> Pool = [null];
-
-    public static void RemoveFromPool(Il2CPPBehaviour Beh)
-    {
-        Pool.Slots.RemoveAt(Beh.SlotIndex);
-        Beh.SlotIndex = 0;
-    }
-    public static Il2CPPBehaviour GetFromPool(int Index)
-    {
-        return Pool.Slots.Get(Index)?.Item;
-    }
     public Il2CPPBehaviour(IntPtr ptr) : base(ptr)
     {
     }
@@ -35,7 +21,7 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
 
     public void OnEnable()
     {
-        onEnable?.Invoke(WrappedBehaviour);
+        onenable?.Invoke(WrappedBehaviour);
     }
 
     public void Start()
@@ -45,59 +31,19 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
 
     public void OnDisable()
     {
-        onDisable?.Invoke(WrappedBehaviour);
+        ondisable?.Invoke(WrappedBehaviour);
     }
 
     private bool canawake;
-    // do not touch these. these are public for Unity to see
-    public Il2CppValueField<int> SlotIndex;
-    [HideFromIl2Cpp]
-    public void CopyFrom(Il2CPPBehaviour other)
-    {
-        WrapperResolver.ResolveInstantiate(other.gameObject, gameObject);
-    }
-    [HideFromIl2Cpp]
-    public bool IsSlotIndexValid()
-    {
-        return SlotIndex > 0 && !Pool.Slots.IsEmpty(SlotIndex);
-    }
-
-    [HideFromIl2Cpp]
-    public bool IsSlotForMe()
-    {
-        return Pool.Slots[SlotIndex].Item == this;
-    }
-    [HideFromIl2Cpp]
-    public void CheckIndex()
-    {
-        if (IsSlotIndexValid())
-        {
-            if (!IsSlotForMe())
-            {
-                CopyFrom(Pool.Slots[SlotIndex].Item);
-                SlotIndex.Set(Pool.Slots.Add(this));
-            }
-        }
-        else
-        {
-            SlotIndex.Set(Pool.Slots.Add(this));
-        }
-    }
     public void Awake()
     {
-        CheckIndex();
         if (!canawake) return;
         awake?.Invoke(WrappedBehaviour);
         canawake = false;
     }
     public void OnDestroy()
     {
-        if (IsSlotIndexValid())
-        {
-            Pool.Slots.RemoveAt(SlotIndex);
-        }
-        onDestroy?.Invoke(WrappedBehaviour);
-        WrappedBehaviour = null;
+        ondestroy?.Invoke(WrappedBehaviour);
     }
 
     public void Update()
@@ -141,16 +87,16 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         update = GetWrappedMethod("Update");
         start = GetWrappedMethod("Start");
         awake = GetWrappedMethod("Awake");
+        ongui = GetWrappedMethod("OnGUI");
+        onenable = GetWrappedMethod("OnEnable");
+        ondisable = GetWrappedMethod("OnDisable");
+        lateupdate = GetWrappedMethod("LateUpdate");
+        ondestroy = GetWrappedMethod("OnDestroy");
         canawake = true;
         if (gameObject.activeInHierarchy)
         {
             Awake();
         }
-        ongui = GetWrappedMethod("OnGUI");
-        onEnable = GetWrappedMethod("OnEnable");
-        onDisable = GetWrappedMethod("OnDisable");
-        lateupdate = GetWrappedMethod("LateUpdate");
-        onDestroy = GetWrappedMethod("OnDestroy");
         return Behaviour;
     }
     [HideFromIl2Cpp]
@@ -167,11 +113,11 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
     private WrappedAction start;
     private WrappedAction awake;
     private WrappedAction ongui;
-    private WrappedAction onEnable;
-    private WrappedAction onDisable;
+    private WrappedAction onenable;
+    private WrappedAction ondisable;
     private WrappedAction lateupdate;
-    private WrappedAction onDestroy;
+    private WrappedAction ondestroy;
     public Type WrappedType { [HideFromIl2Cpp] get; [HideFromIl2Cpp] private set; }
-    public WrappedBehaviour WrappedBehaviour {  [HideFromIl2Cpp]get;  [HideFromIl2Cpp]private set; }
+    public WrappedBehaviour WrappedBehaviour { [HideFromIl2Cpp] get; [HideFromIl2Cpp] private set; }
 }
 public delegate void WrappedAction(WrappedBehaviour beh);

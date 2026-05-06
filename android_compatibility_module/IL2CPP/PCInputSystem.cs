@@ -92,7 +92,102 @@ static class PCInputPatches
     [HarmonyPrefix]
     public static bool CanMoveCamera()
     {
-        return !PCInputSystem.Editing;
+        return PCInputSystem.CurrentMode == PCInputSystem.Mode.None;
+    }
+    [HarmonyPatch(typeof(Input), "get_touchCount")]
+    [HarmonyPostfix] //prevent anything using touches during mouse mode
+    public static void GetTouchCount(ref int __result)
+    {
+        if (!PCInputSystem.MouseEnabled) return;
+        __result = 0;
+    }
+    [HarmonyPatch(typeof(Input), "get_mousePosition")]
+    [HarmonyPostfix]
+    public static void GetMousePosition(ref Vector3 __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = PCInputSystem.MouseSystem.MousePosition;
+        }
+    }
+    [HarmonyPatch(typeof(Input), "get_touchSupported")]
+    [HarmonyPostfix]
+    public static void TouchPresent(ref bool __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = false;
+        }
+    }
+    [HarmonyPatch(typeof(Input), "get_mousePresent")]
+    [HarmonyPostfix]
+    public static void MousePresent(ref bool __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = true;
+        }
+    }
+    [HarmonyPatch(typeof(Input), "get_mouseScrollDelta")]
+    [HarmonyPostfix]
+    public static void MousePresent(ref Vector2 __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result.y = PCInputSystem.MouseScrollWheel;
+        }
+    }
+    [HarmonyPatch(typeof(Input), "get_anyKey")]
+    [HarmonyPostfix]
+    public static void AnyKey(ref bool __result)
+    {
+        if (PCInputSystem.AnyKey)
+        {
+            __result = true;
+        }
+    }
+    [HarmonyPatch(typeof(Input), nameof(Input.GetMouseButton))]
+    [HarmonyPrefix]
+    public static bool GetMouse(int button, ref bool __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = PCInputSystem.MouseSystem.GetState(button) == KeyState.Hold;
+            return false;
+        }
+        return true;
+    }
+    [HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonDown))]
+    [HarmonyPrefix]
+    public static bool GetMouseDown(int button, ref bool __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = PCInputSystem.MouseSystem.GetState(button) == KeyState.Pressed;
+            return false;
+        }
+        return true;
+    }
+    [HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonUp))]
+    [HarmonyPrefix]
+    public static bool GetMouseUp(int button, ref bool __result)
+    {
+        if (PCInputSystem.MouseEnabled)
+        {
+            __result = PCInputSystem.MouseSystem.GetState(button) == KeyState.LetGo;
+            return false;
+        }
+        return true;
+    }
+
+    [HarmonyPatch(typeof(Input), nameof(Input.GetAxis))]
+    [HarmonyPostfix]
+    public static void GetAxis(string axisName, ref float __result)
+    {
+        if (axisName == "Mouse ScrollWheel")
+        {
+            __result = PCInputSystem.MouseScrollWheel;
+        }
     }
 }
 
@@ -241,6 +336,15 @@ public static class Helper
             return key;
         return KeyCode.None;
     }
+    public static Vector2 GetButtonSize(string Name)
+    {
+        return PCInputSystem.BoxStyle.CalcSize(new GUIContent(Name));
+    }
+
+    public static Vector2 ToGUI(this Vector2 vector)
+    {
+        return new Vector2(vector.x, Screen.height-vector.y);
+    }
 }
 public enum TouchState
 {
@@ -249,8 +353,126 @@ public enum TouchState
     Touch,
     MissTouch
 }
+
 public class PCInputSystem : WrappedBehaviour
 {
+    public static class MouseSystem
+    {
+        public class MouseButton
+        {
+            public int FingerID = -1;
+            public KeyState State = KeyState.None;
+            public bool UpdatedThisFrame = false;
+            public Vector2 Position;
+        }
+
+        private static MouseButton Left = new();
+        private static MouseButton Right = new();
+        private static MouseButton Middle = new();
+
+        private static MouseButton[] Buttons = [Left, Right, Middle];
+
+        public static Vector2 MousePosition { get; private set; }
+
+        public static KeyState GetState(int index) => Buttons[index].State;
+
+        public static Rect GetMouseRect(Vector2 Size)
+        {
+            var Pos = MousePosition.ToGUI();
+            return new Rect(Pos.x - Size.x / 2, Pos.y - Size.y / 2, Size.x, Size.y);
+        }
+        public static void Reset()
+        {
+            foreach (var b in Buttons)
+            {
+                b.FingerID = -1;
+                b.State = KeyState.None;
+                b.UpdatedThisFrame = false;
+                b.Position = Vector2.zero;
+            }
+            MousePosition = Vector2.zero;
+        }
+        public static void Update()
+        {
+            var touches = Input.touches;
+            foreach (var b in Buttons)
+                b.UpdatedThisFrame = false;
+            
+            foreach (var touch in touches)
+            {
+                if (IsWithinAnything(touch.position.ToGUI(), out bool inwindow))
+                {
+                    if (!inwindow)
+                    {
+                        ResetScrollWheel();
+                    }
+                    continue;
+                }
+                var button = GetButton(touch.fingerId);
+                if (button == null) continue;
+                ResetScrollWheel();
+                button.UpdatedThisFrame = true;
+
+                button.State = touch.phase switch
+                {
+                    TouchPhase.Began => KeyState.Pressed,
+                    TouchPhase.Moved or TouchPhase.Stationary => KeyState.Hold,
+                    TouchPhase.Ended or TouchPhase.Canceled => KeyState.LetGo,
+                    _ => button.State
+                };
+                button.Position = touch.position;
+            }
+            foreach (var b in Buttons)
+            {
+                if (b.FingerID != -1 && !b.UpdatedThisFrame)
+                {
+                    if (b.State == KeyState.Hold || b.State == KeyState.Pressed)
+                        b.State = KeyState.LetGo;
+                }
+            }
+            UpdateMousePosition();
+        }
+        private static void UpdateMousePosition()
+        {
+            MousePosition = Buttons[SelectedButton].Position;
+        }
+        public static void LateUpdate()
+        {
+            foreach (var b in Buttons)
+            {
+                if (b.State == KeyState.LetGo)
+                {
+                    b.State = KeyState.None;
+                    b.FingerID = -1;
+                }
+                else if (b.State == KeyState.Pressed)
+                {
+                    b.State = KeyState.Hold;
+                }
+            }
+        }
+
+        private static MouseButton GetButton(int fingerId)
+        {
+            var button = Buttons[SelectedButton];
+            if (button.FingerID == fingerId)
+            {
+                return button;
+            }
+            if (button.FingerID != -1) return null;
+            button.FingerID = fingerId;
+            return button;
+        }
+
+        public static string GetButtonName(int ID) => ID switch
+        {
+            0 => "Left Button",
+            1 => "Right Button",
+            2 => "Middle Button",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        public static int SelectedButton = 0;
+    }
     public static KeyState GetState(KeyCode Code)
     {
         return Config.Inputs[Code].State;
@@ -274,12 +496,45 @@ public class PCInputSystem : WrappedBehaviour
         return Config.Inputs.FirstOrDefault(x => x.Value == input).Key;
     }
     public static PCInputSystem Instance { get; private set; }
-    public static bool Editing { get; private set; }
+
+    public enum Mode
+    {
+        None,
+        Editing,
+        Mouse
+    }
+
+    public static Mode CurrentMode
+    {
+        get;
+        private set
+        {
+            switch (value)
+            {
+                case Mode.None:
+                    StopEditing();
+                    MouseSystem.Reset();
+                    break;
+                case Mode.Editing:
+                    BeginEditing();
+                    break;
+                case Mode.Mouse:
+                default:
+                    WorldTip.instance.showToolbarText("use first finger to left click, second to double click and third to middle click");
+                    break;
+            }
+            field = value;
+        }
+    }
+
+    public static bool MouseEnabled => CurrentMode == Mode.Mouse;
 
     #region  GUI
     private static Rect MainButton;
+    private static Rect MouseButton;
     private static Rect MainWindow;
     private static GUI.WindowFunction MainWindowFunction;
+    private static GUI.WindowFunction MouseWindowFunction;
     private static PCInputConfig Config;
     #endregion
     public static void Init()
@@ -293,8 +548,10 @@ public class PCInputSystem : WrappedBehaviour
     static void InitGUI()
     {
         MainWindowFunction = C<GUI.WindowFunction>(ManagePCInputs);
+        MouseWindowFunction = C<GUI.WindowFunction>(ManageMouse);
         MainButton = new Rect(0, 0,75, 75);
         MainWindow = new Rect(0, 0, Screen.width/2.5f, Screen.height/4.5f);
+        MouseButton = new Rect(75, 0,150, 75);
     }
 
     public static void SaveConfig(string Path)
@@ -305,14 +562,13 @@ public class PCInputSystem : WrappedBehaviour
     static void BeginEditing()
     {
         global::Config.paused = true;
-        Editing = true;
     }
 
     static void StopEditing()
     {
         global::Config.paused = false;
         global::Config.ui_main_hidden = false;
-        Editing = false;
+        SelectedInput = null;
     }
 
     void DrawButtons()
@@ -340,25 +596,34 @@ public class PCInputSystem : WrappedBehaviour
             }
         }
     }
-
-    private static GUIStyle BoxStyle;
+    internal static GUIStyle BoxStyle;
     private void OnGUI()
     {
         BoxStyle ??= GUI.skin.box;
         DrawButtons();
-        if (Editing)
+        if (CurrentMode == Mode.Editing)
         {
             global::Config.ui_main_hidden = true;
             GUI.Window(67, MainWindow, MainWindowFunction, "PCInputManager");
             MoveInputs();
+            return;
+        }
+        CheckInputs();
+        if (CurrentMode == Mode.Mouse)
+        {
+            GUI.Window(69, MainWindow, MouseWindowFunction, "Mouse Manager");
+            GUI.Box(MouseSystem.GetMouseRect(Helper.GetButtonSize("Cursor")), "Cursor");
         }
         else
         {
             if (GUI.Button(MainButton, "PCInput"))
             {
-                BeginEditing();
+                CurrentMode = Mode.Editing;
             }
-            CheckInputs();
+            if (GUI.Button(MouseButton, $"Mouse Mode"))
+            {
+                CurrentMode = Mode.Mouse;
+            }
         }
     }
 
@@ -371,12 +636,10 @@ public class PCInputSystem : WrappedBehaviour
 
             bool inside = false;
 
-            for (int i = 0; i < Input.touchCount; i++)
+            foreach (var Touch in Input.touches)
             {
-                var touchPos = Input.GetTouch(i).position;
-                
-                touchPos.y = Screen.height - touchPos.y;
-
+                var touchPos = Touch.position.ToGUI();
+               
                 if (button.ButtonRect.Contains(touchPos))
                 {
                     inside = true;
@@ -390,11 +653,23 @@ public class PCInputSystem : WrappedBehaviour
                 button.Release();
         }
     }
+
+    void Update()
+    {
+        if (MouseEnabled)
+        {
+            MouseSystem.Update();
+        }
+    }
     void LateUpdate()
     {
         foreach (var input in Config.Inputs.Values)
         {
             input.EndFrame();
+        }
+        if (MouseEnabled)
+        {
+            MouseSystem.LateUpdate();
         }
     }
 
@@ -436,8 +711,7 @@ public class PCInputSystem : WrappedBehaviour
         pos = default;
         if (Input.touchCount == 0) return TouchState.NoTouch;
         var touch = Input.GetTouch(0);
-        pos = touch.position;
-        pos.y = Screen.height - pos.y;
+        pos = touch.position.ToGUI();
         if (MainWindow.Contains(pos))
         {
             return TouchState.InWindow;
@@ -453,6 +727,21 @@ public class PCInputSystem : WrappedBehaviour
             }
         }
         return TouchState.MissTouch;
+    }
+
+    public static bool AnyKey
+    {
+        get
+        {
+            foreach (var button in Config.Inputs)
+            {
+                if (button.Value.State != KeyState.None)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     private TouchState PrevState;
@@ -487,26 +776,6 @@ public class PCInputSystem : WrappedBehaviour
         PrevState = state;
         SelectedInput?.SetPos(pos - SelectedInput.ButtonRect.size/2);
     }
-    public static PCInput CreateNewButton(string Name, KeyCode Code, Rect rect = default)
-    {
-        if (ContainsInput(Code))
-        {
-            return Config.Inputs[Code];
-        }
-        if (rect == default)
-        {
-            rect = GetNextButtonRect(GetButtonSize(Name)*2);
-        }
-        PCInput input = new PCInput { Name = Name, ButtonRect = rect };
-        Config.Inputs.Add(Code, input);
-        return input;
-    }
-
-    public static Vector2 GetButtonSize(string Name)
-    {
-        return BoxStyle.CalcSize(new GUIContent(Name));
-    }
-
     public static Rect GetNextButtonRect(Vector2 Size)
     {
         for (int x = 0; x < Screen.width/Size.x; x ++)
@@ -520,8 +789,21 @@ public class PCInputSystem : WrappedBehaviour
                 }
             }
         }
-
         return default;
+    }
+    public static PCInput CreateNewButton(string Name, KeyCode Code, Rect rect = default)
+    {
+        if (ContainsInput(Code))
+        {
+            return Config.Inputs[Code];
+        }
+        if (rect == default)
+        {
+            rect = GetNextButtonRect(Helper.GetButtonSize(Name)*2);
+        }
+        PCInput input = new PCInput { Name = Name, ButtonRect = rect };
+        Config.Inputs.Add(Code, input);
+        return input;
     }
 
     public static void DeleteButton(KeyCode code)
@@ -530,14 +812,31 @@ public class PCInputSystem : WrappedBehaviour
     }
     public static bool DoesRectIntersectAnything(Rect rect)
     {
-        if (MainButton.Overlaps(rect) || MainWindow.Overlaps(rect))
+        if (MainWindow.Overlaps(rect))
         {
             return true;
         }
-
         foreach (var button in Config.Inputs.Values)
         {
             if (button.ButtonRect.Overlaps(rect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static bool IsWithinAnything(Vector2 pos, out bool InWindow)
+    {
+        if (MainWindow.Contains(pos))
+        {
+            InWindow = true;
+            return true;
+        }
+
+        InWindow = false;
+        foreach (var button in Config.Inputs.Values)
+        {
+            if (button.ButtonRect.Contains(pos))
             {
                 return true;
             }
@@ -551,7 +850,7 @@ public class PCInputSystem : WrappedBehaviour
     {
         if (GUILayout.Button("Stop Editing"))
         {
-            StopEditing();
+            CurrentMode = Mode.None;
         }
         if (GUILayout.Button("Save Settings"))
         {
@@ -596,12 +895,46 @@ public class PCInputSystem : WrappedBehaviour
         }
         else
         {
-          // string newname = GUILayout.TextField("New Button Name", TextStyle); text field currently not supported
+           //string newname = GUILayout.TextField("New Button Name", TextStyle); text field currently not supported
            if (GUILayout.Button("Create New Button") && pendingKey != KeyCode.None)
            {
                SelectedInput = CreateNewButton(pendingKey.ToString(), pendingKey, GetNextButtonRect(new Vector2(currentX, currentY)));
                pendingKey = KeyCode.None;
            }
         }
+    }
+
+    internal static float MouseScrollWheel = 0;
+    static void ManageMouse(int windowid)
+    {
+        if (GUILayout.Button("Disable Mouse"))
+        {
+            CurrentMode = Mode.None;
+        }
+        GUILayout.Label($"Current Button: {MouseSystem.GetButtonName(MouseSystem.SelectedButton)}");
+        for (int i = 0; i < 3; i++)
+        {
+            if (GUILayout.Button(MouseSystem.GetButtonName(i)))
+            {
+                ResetScrollWheel();
+                MouseSystem.SelectedButton = i;
+            }
+        }
+        GUILayout.Label("Mouse ScrollWheel");
+        MouseScrollWheel = GUILayout.DoHorizontalSlider(
+            MouseScrollWheel,
+            -1,
+            1,
+            GUI.skin.horizontalSlider,
+            GUI.skin.horizontalSliderThumb, new [] {GUILayout.Width(200), GUILayout.Height(20)});
+        if (Event.current.type == EventType.mouseUp)
+        {
+           ResetScrollWheel();
+        }
+    }
+
+    static void ResetScrollWheel()
+    {
+        MouseScrollWheel = 0;
     }
 }
