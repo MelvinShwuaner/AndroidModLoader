@@ -585,7 +585,7 @@ public class MirroredAssemblies : AssemblyLoadContext
         {
             void L(string msg)
             {
-                MelonHelper.Log(msg);
+                AndroidHelper.Log(msg);
             }
 
             if (!DEBUG && !Error)

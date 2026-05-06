@@ -160,7 +160,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            MelonHelper.LogError("[NML]: " + message);
+            AndroidHelper.LogError("[NML]: " + message);
         }
         else
         {
@@ -175,7 +175,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            MelonHelper.LogWarning("[NML]: " + message);
+            AndroidHelper.LogWarning("[NML]: " + message);
         }
         else
         {
@@ -190,7 +190,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            MelonHelper.Log("[NML]: " + message);
+            AndroidHelper.Log("[NML]: " + message);
         }
         else
         {

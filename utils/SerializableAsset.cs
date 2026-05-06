@@ -1,6 +1,7 @@
 ﻿using NeoModLoader.services;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
+using NeoModLoader.AndroidCompatibilityModule;
 
 namespace NeoModLoader.utils
 {
@@ -37,6 +38,7 @@ namespace NeoModLoader.utils
         /// </summary>
         public static SerializableAsset FromAsset(Asset Asset)
         {
+            AndroidHelper.Throw("Asset File Loading");
             SerializableAsset asset = new();
             Serialize(Asset, asset);
             return asset;
@@ -95,6 +97,7 @@ namespace NeoModLoader.utils
         /// </summary>
         public static Asset ToAsset(SerializableAsset Asset, Type AssetType)
         {
+            AndroidHelper.Throw("Asset File Loading"); 
             Asset asset = Activator.CreateInstance(AssetType) as Asset;
             Deserialize(Asset, asset);
             return asset;

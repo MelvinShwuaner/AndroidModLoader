@@ -184,7 +184,7 @@ static class PCInputPatches
     [HarmonyPostfix]
     public static void GetAxis(string axisName, ref float __result)
     {
-        if (axisName == "Mouse ScrollWheel")
+        if (axisName == "Mouse ScrollWheel" && PCInputSystem.MouseEnabled)
         {
             __result = PCInputSystem.MouseScrollWheel;
         }

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using HarmonyLib;
 using Il2CppSystem.Linq;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
@@ -15,12 +16,10 @@ using UnityEngine;
 /// </summary>
 public static class Converter
 {
-  
     public static D C<D>(Delegate func) where D : System.Delegate
     {
         return DelegateSupport.ConvertDelegate<D>(func);
     }
-
     public static System.ValueTuple<X, Y, Z> C<X, Y, Z>(ValueTuple<X, Y, Z> tuple)
     {
         if (!typeof(X).IsIL2CPPCompatible() || !typeof(Y).IsIL2CPPCompatible() || !typeof(Z).IsIL2CPPCompatible())
@@ -46,15 +45,14 @@ public static class Converter
     {
         return Type.GetType(type.AssemblyQualifiedName);
     }
-
+    public static System.Nullable<A> Nullify<A>(this A a) where A : new()
+    {
+        return new System.Nullable<A>(a);
+    }
     #region  Arrays
     public static A[] C<A>(this Il2CppArrayBase<A> arr)
     {
         return arr;
-    }
-    public static System.Nullable<A> Nullify<A>(this A a) where A : new()
-    {
-        return new System.Nullable<A>(a);
     }
     public static Il2CppReferenceArray<A> A<A>(params A[] arr) where A : Il2CppObjectBase
     {
@@ -156,7 +154,7 @@ public static class Converter
             if(typeof(WrappedBehaviour).IsAssignableFrom(types[i]))
             {
                 WrappedTypes.Add(types[i]);
-                Types[i] = typeof(Il2CPPBehaviour).C();
+                Types[i] = Il2CppType.Of<Il2CPPBehaviour>();
             }
             else
             {
@@ -165,12 +163,10 @@ public static class Converter
         }
         GameObject obj = new GameObject(name, Types);
         if (WrappedTypes.Count <= 0) return obj;
+        var behs = obj.GetComponents<Il2CPPBehaviour>();
+        for (int i = 0; i < WrappedTypes.Count; i++)
         {
-            var behs = obj.GetComponents<Il2CPPBehaviour>();
-            for (int i = 0; i < WrappedTypes.Count; i++)
-            {
-                behs[i].CreateWrapperIfNull(WrappedTypes[i]);
-            }
+            behs[i].CreateWrapperIfNull(WrappedTypes[i]);
         }
         return obj;
     }

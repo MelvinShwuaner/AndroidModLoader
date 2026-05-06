@@ -130,7 +130,7 @@ public class WorldBoxMod : MonoBehaviour
             WrappedPowersTab._init();
             NCMSCompatibleLayer.PreInit();
             ModInfoUtils.InitializeModCompileCache();
-            MelonHelper.Init();
+            AndroidHelper.Init();
         }), "Initialize NeoModLoader");
         ModEnablePlan startup_enable_plan = null;
         List<ModDependencyNode> mod_nodes = new();

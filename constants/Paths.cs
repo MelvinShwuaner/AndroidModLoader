@@ -182,7 +182,7 @@ public static class Paths
     public static string GamePath => Application.platform switch
     {
         RuntimePlatform.WindowsPlayer => Combine(StreamingAssetsPath, "..", ".."),
-        RuntimePlatform.Android => MelonHelper.GetPath(),
+        RuntimePlatform.Android => AndroidHelper.GetPath(),
         RuntimePlatform.LinuxPlayer   => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.OSXPlayer     => Combine(StreamingAssetsPath, "..", "..", "..", "..", ".."),
         _                             => Combine(StreamingAssetsPath, "..", "..")

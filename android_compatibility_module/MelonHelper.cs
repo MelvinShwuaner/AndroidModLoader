@@ -6,12 +6,19 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 using MelonLoader.Utils;
 using MelonLoader;
 #endif
-public static class MelonHelper
+public static class AndroidHelper
 {
     #if IL2CPP
     public static string GetPath()
     {
         return MelonEnvironment.GameRootDirectory;
+    }
+    /// <summary>
+    /// throws an exception if on il2cpp
+    /// </summary>
+    public static void Throw(string Feature)
+    {
+        throw new PlatformNotSupportedException($"{Feature} is not supported on IL2CPP!");
     }
 
     internal static void Init()
@@ -72,6 +79,7 @@ public static class MelonHelper
     public static byte[] ReadAPKAsset(string assetPath){
         throw new PlatformNotSupportedException("How did we get here?");
     }
+    public static void Throw(string Feature){}
     public static void Init(){}
     #endif
 }

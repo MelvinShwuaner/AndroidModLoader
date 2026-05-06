@@ -9,7 +9,10 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using Enumerable = Il2CppSystem.Linq.Enumerable;
+using IEnumerable = Il2CppSystem.Collections.IEnumerable;
 using IEnumerator = Il2CppSystem.Collections.IEnumerator;
+using Object = Il2CppSystem.Object;
 using Random = System.Random;
 
 namespace NeoModLoader.AndroidCompatibilityModule;
@@ -32,9 +35,9 @@ public static class Extentions
 
         return -1;
     }
-    public static IEnumerable<T> OfIL2CppType<T>(this IEnumerable<Il2CppObjectBase> list)where T : Il2CppObjectBase
+    public static IEnumerable<T> OfType<T>(this Il2CppObjectBase list) where T : Il2CppObjectBase
     {
-	    foreach (Il2CppObjectBase obj in list)
+	    foreach (var obj in list.Cast<IEnumerable>())
 	    {
 		    var cast = obj.TryCast<T>();
 		    if (cast != null)
