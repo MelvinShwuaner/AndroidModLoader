@@ -345,6 +345,11 @@ public static class Helper
     {
         return new Vector2(vector.x, Screen.height-vector.y);
     }
+
+    public static string IsEnabled(this bool b)
+    {
+        return b ? "Enabled" : "Disabled";
+    }
 }
 public enum TouchState
 {
@@ -366,6 +371,7 @@ public class PCInputSystem : WrappedBehaviour
             public Vector2 Position;
         }
 
+        internal static bool ClickingEnabled = true;
         private static MouseButton Left = new();
         private static MouseButton Right = new();
         private static MouseButton Middle = new();
@@ -412,14 +418,16 @@ public class PCInputSystem : WrappedBehaviour
                 if (button == null) continue;
                 ResetScrollWheel();
                 button.UpdatedThisFrame = true;
-
-                button.State = touch.phase switch
+                if (ClickingEnabled)
                 {
-                    TouchPhase.Began => KeyState.Pressed,
-                    TouchPhase.Moved or TouchPhase.Stationary => KeyState.Hold,
-                    TouchPhase.Ended or TouchPhase.Canceled => KeyState.LetGo,
-                    _ => button.State
-                };
+                    button.State = touch.phase switch
+                    {
+                        TouchPhase.Began => KeyState.Pressed,
+                        TouchPhase.Moved or TouchPhase.Stationary => KeyState.Hold,
+                        TouchPhase.Ended or TouchPhase.Canceled => KeyState.LetGo,
+                        _ => button.State
+                    };
+                }
                 button.Position = touch.position;
             }
             foreach (var b in Buttons)
@@ -930,6 +938,10 @@ public class PCInputSystem : WrappedBehaviour
         if (Event.current.type == EventType.mouseUp)
         {
            ResetScrollWheel();
+        }
+        if (GUILayout.Button($"Clicking : {MouseSystem.ClickingEnabled.IsEnabled()}"))
+        {
+            MouseSystem.ClickingEnabled = !MouseSystem.ClickingEnabled;
         }
     }
 
