@@ -1,8 +1,6 @@
-#if !IL2CPP
 extern alias unixsteamwork;
 using unixsteamwork::Steamworks;
 using unixsteamwork::Steamworks.Ugc;
-#endif
 using System.Reflection;
 using NeoModLoader.api;
 using NeoModLoader.constants;
