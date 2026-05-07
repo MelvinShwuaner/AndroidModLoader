@@ -352,7 +352,7 @@ internal static class ModInfoUtils
         }
 
         File.Delete(download_path);
-        #if !IL2CPP
+       
         switch (Application.platform)
         {
             case RuntimePlatform.LinuxPlayer:
@@ -400,7 +400,6 @@ internal static class ModInfoUtils
             default:
                 break;
         }
-        #endif
         LogService.LogInfo($"Install BepInEx to {Paths.GamePath}");
     }
 

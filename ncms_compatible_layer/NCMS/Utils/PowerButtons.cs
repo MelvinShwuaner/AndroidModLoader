@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils
 {

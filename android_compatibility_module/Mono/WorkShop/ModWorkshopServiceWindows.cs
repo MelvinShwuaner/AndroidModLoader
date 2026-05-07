@@ -1,4 +1,4 @@
-#if !IL2CPP
+
 extern alias winsteamwork;
 using System.Reflection;
 using NeoModLoader.api;
@@ -221,4 +221,3 @@ internal class ModWorkshopServiceWindows : IPlatformSpecificModWorkshopService
         return subscribedItems;
     }
 }
-#endif

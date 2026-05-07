@@ -1,9 +1,11 @@
-#if !IL2CPP
+
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 
 namespace NeoModLoader.ui;
 
@@ -33,7 +35,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         ModWorkshopService.steamWorkshopPromise.Then(ModWorkshopService.FindSubscribedMods).Catch(
             delegate(Exception err)
             {
-                Debug.LogError(err);
+                LogService.LogException(err);
                 ErrorWindow.errorMessage =
                     "Error happened while connecting to Steam Workshop:\n" + err.Message.ToString();
                 ScrollWindow.get("error_with_reason").clickShow();
@@ -64,7 +66,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
 
     protected override AbstractListWindowItem<ModDeclare> CreateItemPrefab()
     {
-        GameObject obj = new GameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
+        GameObject obj = CreateGameObject("WorkshopModListItemPrefab", typeof(Image), typeof(WorkshopModListItem));
         obj.SetActive(false);
 
         obj.transform.SetParent(WorldBoxMod.Transform);
@@ -74,7 +76,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         bg.sprite = Resources.Load<Sprite>("ui/special/windowInnerSliced");
         bg.type = Image.Type.Sliced;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = CreateGameObject("Icon", typeof(Image));
         icon.transform.SetParent(obj.transform);
         icon.transform.localPosition = new(-75, 0);
         icon.transform.localScale = Vector3.one;
@@ -82,7 +84,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image iconImage = icon.GetComponent<Image>();
         iconImage.sprite = InternalResourcesGetter.GetIcon();
 
-        GameObject iconFrame = new GameObject("IconFrame", typeof(Image));
+        GameObject iconFrame = CreateGameObject("IconFrame", typeof(Image));
         iconFrame.transform.SetParent(icon.transform);
         iconFrame.transform.localPosition = Vector3.zero;
         iconFrame.transform.localScale = Vector3.one;
@@ -92,7 +94,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         iconFrameImage.sprite = InternalResourcesGetter.GetIconFrame();
         iconFrameImage.type = Image.Type.Sliced;
 
-        GameObject text = new GameObject("Text", typeof(Text));
+        GameObject text = CreateGameObject("Text", typeof(Text));
         text.transform.SetParent(obj.transform);
         text.transform.localPosition = new(12.5f, 0);
         text.transform.localScale = Vector3.one;
@@ -103,7 +105,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         textText.supportRichText = true;
 
         Vector2 single_button_size = new(22, 22);
-        GameObject download = new GameObject("Load", typeof(Image), typeof(Button));
+        GameObject download = CreateGameObject("Load", typeof(Image), typeof(Button));
         download.transform.SetParent(obj.transform);
         download.transform.localPosition = new(87, 12);
         download.transform.localScale = Vector3.one;
@@ -111,7 +113,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image downloadImageBG = download.GetComponent<Image>();
         downloadImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         downloadImageBG.type = Image.Type.Sliced;
-        GameObject downloadIcon = new GameObject("Icon", typeof(Image));
+        GameObject downloadIcon = CreateGameObject("Icon", typeof(Image));
         downloadIcon.transform.SetParent(download.transform);
         downloadIcon.transform.localPosition = Vector3.zero;
         downloadIcon.transform.localScale = Vector3.one;
@@ -119,7 +121,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image configureIconImage = downloadIcon.GetComponent<Image>();
         configureIconImage.sprite = Resources.Load<Sprite>("ui/icons/iconGameServices");
 
-        GameObject website = new GameObject("Website", typeof(Image), typeof(Button));
+        GameObject website = CreateGameObject("Website", typeof(Image), typeof(Button));
         website.transform.SetParent(obj.transform);
         website.transform.localPosition = new(87, -12);
         website.transform.localScale = Vector3.one;
@@ -127,7 +129,7 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         Image websiteImageBG = website.GetComponent<Image>();
         websiteImageBG.sprite = Resources.Load<Sprite>("ui/special/button2");
         websiteImageBG.type = Image.Type.Sliced;
-        GameObject websiteIcon = new GameObject("Icon", typeof(Image));
+        GameObject websiteIcon = CreateGameObject("Icon", typeof(Image));
         websiteIcon.transform.SetParent(website.transform);
         websiteIcon.transform.localPosition = Vector3.zero;
         websiteIcon.transform.localScale = Vector3.one;
@@ -181,4 +183,3 @@ internal class WorkshopModListWindow : AbstractListWindow<WorkshopModListWindow,
         }
     }
 }
-#endif

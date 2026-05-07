@@ -1,4 +1,4 @@
-#if !IL2CPP
+
 using System.Reflection;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
@@ -19,6 +19,7 @@ internal static class ModWorkshopService
 
     public static void Init()
     {
+        #if !IL2CPP
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {
@@ -28,6 +29,9 @@ internal static class ModWorkshopService
         {
             workshopServiceBackend = new ModWorkshopServiceUnix();
         }
+        #else
+        workshopServiceBackend = new MobileWorkShopService();
+        #endif
     }
 
     private static void UploadModLoader(string changelog)
@@ -182,4 +186,3 @@ internal static class ModWorkshopService
         return workshopServiceBackend.GetNextModFromWorkshopItem();
     }
 }
-#endif

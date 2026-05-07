@@ -4,7 +4,7 @@ using NeoModLoader.services;
 using UnityEngine;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
 namespace NeoModLoader.api;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 /// <summary>
 /// If you want to create a simple mod, you can inherit this class.
 /// <para>Then NML will find this class in your compiled mod, then load it into ModLoader provided by WorldBox</para>

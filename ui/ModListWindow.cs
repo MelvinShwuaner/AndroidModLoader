@@ -1,6 +1,7 @@
 using System.Collections;
 using NeoModLoader.AndroidCompatibilityModule;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -235,13 +236,11 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
     public class ModListItem : AbstractListWindowItem<IMod>
     {
         private IMod _mod;
-        #if !IL2CPP
         private IEnumerator WaitOpenWindow()
         {
             yield return new WaitForSeconds(3f);
             if (Instance.clickTimes == 8) ModUploadWindow.ShowWindow(_mod);
         }
-        #endif
         /// <inheritdoc cref="AbstractListWindowItem{TItem}.Setup" />
         /// <param name="mod">The mod to display</param>
         public override void Setup(IMod mod)
@@ -335,12 +334,10 @@ public class ModListWindow : AbstractListWindow<ModListWindow, IMod>
 
                     Instance.lastClickTime = current_time;
                     Instance.clickTimes++;
-                    #if !IL2CPP
                     if (Instance.clickTimes == 8)
                     {
-                        StartCoroutine(nameof(WaitOpenWindow));
+                        StartCoroutine(WaitOpenWindow());
                     }
-                    #endif
                 }));
             }
 

@@ -3,7 +3,7 @@ using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Window;
 
 public abstract class AutoLayoutGroup<T, TElement> : AutoLayoutElement<TElement>

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using NeoModLoader.AndroidCompatibilityModule;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
 namespace NeoModLoader.api;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 /// <summary>
 ///     This class is used to create a wide window
 /// </summary>

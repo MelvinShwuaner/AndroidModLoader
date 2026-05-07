@@ -4,7 +4,7 @@ using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.constants;
 using NeoModLoader.services;
-using Newtonsoft.Json;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
@@ -48,11 +48,7 @@ public static class ResourcesPatch
 
     internal static void Initialize()
     {
-        #if !IL2CPP
         AssetManager._instance.add(SoundLibrary.MainLibrary = new SoundLibrary(),"CustomAudio");
-        #else
-        SoundLibrary.MainLibrary = new SoundLibrary();
-        #endif
         FMODHelper.InitFMOD();
         
         tree = new ResourceTree();
@@ -89,10 +85,6 @@ public static class ResourcesPatch
     {
         if (pLowerPath.EndsWith(".png") || pLowerPath.EndsWith(".jpg") || pLowerPath.EndsWith(".jpeg"))
             return SpriteLoadUtils.LoadSprites(path);
-        if (Config.isAndroid)
-        {
-            return new Object[] { };
-        }
         return new Object[]
         {
             LoadTextAsset(path)
@@ -114,13 +106,7 @@ public static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-      #if !IL2CPP
-          TextAsset textAsset = new TextAsset(File.ReadAllText(path));
-         textAsset.name = Path.GetFileNameWithoutExtension(path);
-        
-        return textAsset;
-        #endif
-        return null;
+        return CreateTextAsset(File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
     }
 
     internal static void LoadResourceFromFolder(string pFolder, AssetLinker Linker)
@@ -150,9 +136,7 @@ public static class ResourcesPatch
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
         if (!Directory.Exists(platform_folder)) return;
-#if ILIL2CPP
         AssetBundleUtils.LoadFromFolder(platform_folder);
-#endif
     }
 
     [HarmonyPrefix]

@@ -205,6 +205,8 @@
         <None Remove="assembly-dependencies\**" />
         <EmbeddedResource Remove="android_compatibility_module\Mono\**" />
         <None Remove="android_compatibility_module\Mono\**" />
+        <EmbeddedResource Remove="services\WorkShop\**" />
+        <None Remove="services\WorkShop\**" />
     </ItemGroup>
   
     <ItemGroup>
@@ -225,6 +227,7 @@
       <Compile Remove="AndroidCompatibilityModule\Stubs\**" />
       <Compile Remove="android_compatibility_module\Stubs\**" />
       <Compile Remove="android_compatibility_module\Mono\**" />
+      <Compile Remove="services\WorkShop\**" />
     </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

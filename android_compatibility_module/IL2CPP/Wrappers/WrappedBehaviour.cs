@@ -71,7 +71,7 @@ public class WrappedBehaviour
     }
     [JsonIgnore]
     public Il2CPPBehaviour Wrapper { get; internal set; }
-    public C GetComponent<C>() where C : Component
+    public C GetComponent<C>()
     {
         return Wrapper.GetComponent<C>();
     }
@@ -84,10 +84,6 @@ public class WrappedBehaviour
         return Wrapper.StartCoroutine(enumerator.ToIL2CPP());
     }
     public void StopCoroutine(Coroutine coroutine)
-    {
-        Wrapper.StopCoroutine(coroutine);
-    }
-    public void StopCoroutine(string coroutine)
     {
         Wrapper.StopCoroutine(coroutine);
     }

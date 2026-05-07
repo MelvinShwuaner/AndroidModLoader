@@ -12,7 +12,7 @@ public abstract class MonoAsset
     public void setIndexID(int pValue) => this._index = pValue;
     public int _index;
 }
-public class MonoAssetLibrary<T> where T : MonoAsset
+public class MonoAssetLibrary<T> : BaseMonoLibrary where T : MonoAsset
 {
     public T t;
     public List<T> list = new List<T>();
@@ -41,5 +41,15 @@ public class MonoAssetLibrary<T> where T : MonoAsset
         this.t.setIndexID(this.list.Count);
         this.dict.Add(id, pAsset);
         return pAsset;
+    }
+}
+
+public class BaseMonoLibrary
+{
+    private static List<BaseMonoLibrary> list = new(); //i dont fucking know
+
+    public static void add(BaseMonoLibrary lib)
+    {
+        list.Add(lib);
     }
 }

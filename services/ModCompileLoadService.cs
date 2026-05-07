@@ -500,9 +500,7 @@ public static class ModCompileLoadService
         bool all_success = true;
         foreach (var mod_assembly in mod_assemblies)
         {
-            #if IL2CPP
             MelonLoader.RegisterTypeInIl2Cpp.RegisterAssembly(mod_assembly);
-            #endif
             GameObject mod_instance;
             bool any_loaded = false;
             foreach (var type in mod_assembly.GetTypes())

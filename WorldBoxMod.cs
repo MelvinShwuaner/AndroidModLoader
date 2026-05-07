@@ -2,6 +2,7 @@
 using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule;
 using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -12,9 +13,7 @@ using NeoModLoader.ui;
 using NeoModLoader.utils;
 using NeoModLoader.utils.Sounds;
 using UnityEngine;
-#if IL2CPP
 using Il2CppInterop.Runtime.Injection;
-#endif
 namespace NeoModLoader;
 /// <summary>
 /// Main class
@@ -218,9 +217,7 @@ public class WorldBoxMod : MonoBehaviour
 
             SmoothLoader.add(C<MapLoaderAction>(() =>
             {
-                #if !IL2CPP
                 ModWorkshopService.Init();
-                #endif
                 UIManager.init();
 
                 ModInfoUtils.DealWithBepInExModLinkRequests();

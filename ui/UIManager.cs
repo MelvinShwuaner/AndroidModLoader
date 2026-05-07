@@ -10,12 +10,17 @@ internal static class UIManager
     {
         InformationWindow.CreateWindow("Information", "Information Title");
         ModListWindow.CreateAndInit("NeoModList");
-        #if !IL2CPP
-        NewModListWindow.CreateAndInit("NMLMenu");
-        WorkshopModListWindow.CreateAndInit("WorkshopMods");
-        ModUploadWindow.CreateAndInit("ModUpload");
-        ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
-        #endif
+        if(!Config.isAndroid){
+            NewModListWindow.CreateAndInit("NMLMenu");
+            WorkshopModListWindow.CreateAndInit("WorkshopMods");
+            ModUploadWindow.CreateAndInit("ModUpload");
+            ModUploadingProgressWindow.CreateAndInit("ModUploadingProgress");
+            PowerButtonCreator.AddButtonToTab(
+            PowerButtonCreator.CreateWindowButton("NewNML_ModsList", "NMLMenu",
+                                                  InternalResourcesGetter.GetIcon()),
+            PowerButtonCreator.GetTab(PowerTabNames.Main),
+            23);
+        }
         ModUploadAuthenticationWindow.CreateAndInit("ModUploadAuthentication");
         ModConfigureWindow.CreateAndInit("ModConfigure");
         PowerButtonCreator.AddButtonToTab(
@@ -23,11 +28,5 @@ internal static class UIManager
                                                   InternalResourcesGetter.GetIcon()),
             PowerButtonCreator.GetTab(PowerTabNames.Main),
           22);
-        
-        PowerButtonCreator.AddButtonToTab(
-            PowerButtonCreator.CreateWindowButton("NewNML_ModsList", "NMLMenu",
-                                                  InternalResourcesGetter.GetIcon()),
-            PowerButtonCreator.GetTab(PowerTabNames.Main),
-            23);
     }
 }

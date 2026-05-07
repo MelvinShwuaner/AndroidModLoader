@@ -371,6 +371,19 @@ public class PCInputSystem : WrappedBehaviour
             public Vector2 Position;
         }
 
+        internal static bool MultiClicking
+        {
+            get;
+            set
+            {
+                field = value;
+                if (field)
+                {
+                    WorldTip.instance.showToolbarText("use first finger to left click, second to double click and third to middle click");
+                }
+            }
+        }
+
         internal static bool ClickingEnabled = true;
         private static MouseButton Left = new();
         private static MouseButton Right = new();
@@ -434,7 +447,7 @@ public class PCInputSystem : WrappedBehaviour
             {
                 if (b.FingerID != -1 && !b.UpdatedThisFrame)
                 {
-                    if (b.State == KeyState.Hold || b.State == KeyState.Pressed)
+                    if (b.State is KeyState.Hold or KeyState.Pressed)
                         b.State = KeyState.LetGo;
                 }
             }
@@ -442,7 +455,12 @@ public class PCInputSystem : WrappedBehaviour
         }
         private static void UpdateMousePosition()
         {
-            MousePosition = Buttons[SelectedButton].Position;
+            foreach (var Button in Buttons)
+            {
+                if (!Button.UpdatedThisFrame) continue;
+                MousePosition = Button.Position;
+                return;
+            }
         }
         public static void LateUpdate()
         {
@@ -459,17 +477,27 @@ public class PCInputSystem : WrappedBehaviour
                 }
             }
         }
-
-        private static MouseButton GetButton(int fingerId)
+        private static bool Check(MouseButton button, int fingerId)
         {
-            var button = Buttons[SelectedButton];
             if (button.FingerID == fingerId)
             {
-                return button;
+                return true;
             }
-            if (button.FingerID != -1) return null;
+            if (button.FingerID != -1) return false;
             button.FingerID = fingerId;
-            return button;
+            return true;
+        }
+        private static MouseButton GetButton(int fingerId)
+        {
+            if (!MultiClicking) return Check(SelectedButton, fingerId) ? SelectedButton : null;
+            foreach (var but in Buttons)
+            {
+                if (Check(but, fingerId))
+                {
+                    return but;
+                }
+            }
+            return null;
         }
 
         public static string GetButtonName(int ID) => ID switch
@@ -479,7 +507,8 @@ public class PCInputSystem : WrappedBehaviour
             2 => "Middle Button",
             _ => throw new ArgumentOutOfRangeException()
         };
-        public static int SelectedButton = 0;
+        public static MouseButton SelectedButton => Buttons[selectedbutton];
+        internal static int selectedbutton = 0;
     }
     public static KeyState GetState(KeyCode Code)
     {
@@ -526,10 +555,11 @@ public class PCInputSystem : WrappedBehaviour
                 case Mode.Editing:
                     BeginEditing();
                     break;
-                case Mode.Mouse:
-                default:
-                    WorldTip.instance.showToolbarText("use first finger to left click, second to double click and third to middle click");
+                case Mode.Mouse: 
+                    WorldTip.instance.showToolbarText("you are now simulating a mouse on your touch screen");
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
             field = value;
         }
@@ -919,13 +949,18 @@ public class PCInputSystem : WrappedBehaviour
         {
             CurrentMode = Mode.None;
         }
-        GUILayout.Label($"Current Button: {MouseSystem.GetButtonName(MouseSystem.SelectedButton)}");
-        for (int i = 0; i < 3; i++)
+        if (GUILayout.Button($"Multi Clicking : {MouseSystem.MultiClicking.IsEnabled()}"))
         {
-            if (GUILayout.Button(MouseSystem.GetButtonName(i)))
+            MouseSystem.MultiClicking = !MouseSystem.MultiClicking;
+        }
+        if (!MouseSystem.MultiClicking)
+        {
+            GUILayout.Label($"Current Button: {MouseSystem.GetButtonName(MouseSystem.selectedbutton)}");
+            for (int i = 0; i < 3; i++)
             {
+                if (!GUILayout.Button(MouseSystem.GetButtonName(i))) continue;
                 ResetScrollWheel();
-                MouseSystem.SelectedButton = i;
+                MouseSystem.selectedbutton = i;
             }
         }
         GUILayout.Label("Mouse ScrollWheel");
@@ -944,7 +979,6 @@ public class PCInputSystem : WrappedBehaviour
             MouseSystem.ClickingEnabled = !MouseSystem.ClickingEnabled;
         }
     }
-
     static void ResetScrollWheel()
     {
         MouseScrollWheel = 0;

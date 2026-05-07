@@ -4,7 +4,6 @@ using Object = UnityEngine.Object;
 
 namespace NeoModLoader.utils;
 //asset bundle not apart of il2cpp assemblies nor is it in the il2cpp domain. cannot be used
-#if !IL2CPP
 /// <summary>
 ///     The class provides a wrapped asset bundle for easier use.
 /// </summary>
@@ -273,4 +272,3 @@ public static class AssetBundleUtils
         return asset_bundles.ToArray();
     }
 }
-#endif

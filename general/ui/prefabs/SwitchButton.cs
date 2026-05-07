@@ -1,5 +1,5 @@
 using NeoModLoader.AndroidCompatibilityModule;
-using NeoModLoader.utils;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;

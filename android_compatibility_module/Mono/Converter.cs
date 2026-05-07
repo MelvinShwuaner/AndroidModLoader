@@ -39,10 +39,6 @@ public static class Converter
     {
         return enumerator;
     }
-    public static GameObject CreateGameObject(string name, params Type[] types)
-    {
-        return new GameObject(name, types);
-    }
     public static System.Collections.Generic.List<T> L<T>(params T[] arr)
     {
         System.Collections.Generic.List<T> list = new();

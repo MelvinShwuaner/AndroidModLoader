@@ -7,6 +7,7 @@ using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Linq;
+using RSG;
 using UnityEngine;
 using UnityEngine.Events;
 using Enumerable = Il2CppSystem.Linq.Enumerable;
@@ -325,6 +326,39 @@ public static class Extentions
         {
             yield return transform.GetChild(i);
         }
+    }
+
+    public static void add(this AssetManager _, BaseMonoLibrary lib, string name)
+    {
+	    BaseMonoLibrary.add(lib);
+    }
+    public static void addListener(this NameInput input, Action<string> action)
+    {
+	    input.addListener(Converter.C<UnityAction<string>>(action));
+    }
+    public static IPromise Then(this RSG.Promise promise, Func<IPromise> cause)
+    {
+	    return promise.Then(Converter.C<Il2CppSystem.Func<IPromise>>(cause));
+    }
+    public static IPromise Then(this RSG.Promise promise, Action cause)
+    {
+	    return promise.Then(Converter.C<Il2CppSystem.Action>(cause));
+    }
+    public static IPromise Catch(this IPromise promise, Action<Exception> cause)
+    {
+	    return promise.Catch(Converter.C<Il2CppSystem.Action<Il2CppSystem.Exception>>((Il2CppSystem.Exception ex) => cause(ex.C())));
+    }
+    public static IPromise Then(this IPromise promise,Action func, Action<Exception> fail)
+    {
+	    return promise.Then(Converter.C<Il2CppSystem.Action>(func), Converter.C<Il2CppSystem.Action<Il2CppSystem.Exception>>((Il2CppSystem.Exception exc) => fail(exc.C())));
+    }
+    public static IPromise Then(this Promise promise,Action func, Action<Exception> fail)
+    {
+	    return promise.Then(Converter.C<Il2CppSystem.Action>(func), Converter.C<Il2CppSystem.Action<Il2CppSystem.Exception>>((Il2CppSystem.Exception exc) => fail(exc.C())));
+    }
+    public static void Reject(this RSG.Promise promise, Exception cause)
+    {
+	    promise.Reject(cause.C());
     }
     public static T GetWrappedComponent<T>(this GameObject obj)
     {

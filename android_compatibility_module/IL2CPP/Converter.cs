@@ -77,7 +77,11 @@ public static class Converter
     #endregion
     public static System.Exception C(this Exception e)
     {
-        return new System.Exception(e.Message);
+        return new System.Exception(e.ToString());
+    }
+    public static Il2CppException C(this System.Exception e)
+    {
+        return new Il2CppException(e.Pointer);
     }
     public static System.Collections.Generic.HashSet<E> C<E>(this HashSet<E> set)
     {
@@ -144,31 +148,6 @@ public static class Converter
             dictionary.Add(item.Key, item.Value);
         }
         return dictionary;
-    }
-    public static GameObject CreateGameObject(string name, params Type[] types)
-    {
-        Il2CppSystem.Type[] Types = new Il2CppSystem.Type[types.Length];
-        List<Type> WrappedTypes = new List<Type>();
-        for(int i = 0; i< types.Length; i++)
-        {
-            if(typeof(WrappedBehaviour).IsAssignableFrom(types[i]))
-            {
-                WrappedTypes.Add(types[i]);
-                Types[i] = Il2CppType.Of<Il2CPPBehaviour>();
-            }
-            else
-            {
-                Types[i] = types[i].C();
-            }
-        }
-        GameObject obj = new GameObject(name, Types);
-        if (WrappedTypes.Count <= 0) return obj;
-        var behs = obj.GetComponents<Il2CPPBehaviour>();
-        for (int i = 0; i < WrappedTypes.Count; i++)
-        {
-            behs[i].CreateWrapperIfNull(WrappedTypes[i]);
-        }
-        return obj;
     }
 
     public static System.Collections.Generic.List<T> L<T>(params T[] arr)

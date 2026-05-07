@@ -1,4 +1,5 @@
 using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.General.UI.Window.Layout;
 using NeoModLoader.utils;

@@ -234,9 +234,7 @@ namespace NeoModLoader.utils
             }
             if (Asset.color_hex != null)
             {
-                #if !IL2CPP
-                Asset.color = new Color32?(Toolbox.makeColor(Asset.color_hex));
-                #endif
+                Asset.color = ((Color32)Toolbox.makeColor(Asset.color_hex)).Nullify();
             }
             if (Asset.check_flip == null)
             {
