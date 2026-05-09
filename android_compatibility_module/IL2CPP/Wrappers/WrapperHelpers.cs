@@ -249,7 +249,7 @@ namespace NeoModLoader.AndroidCompatibilityModule
 	public sealed class WrapperResolver : IDisposable
 	{
 		private static readonly Dictionary<Type, FieldInfo[]> fieldCache = new();
-		private Il2CppSystem.Collections.Generic.Dictionary<Transform, Transform> origToClone; //use il2cpp dict to hash mismatches
+		private Il2CppSystem.Collections.Generic.Dictionary<Transform, Transform> origToClone; //use il2cpp dict to stop hash mismatches
 
 		public static void ResolveInstantiate(GameObject orig, GameObject clone)
 		{
@@ -266,7 +266,6 @@ namespace NeoModLoader.AndroidCompatibilityModule
 			if (!detected && !orig.HasComponent<Il2CPPBehaviour>())
 			{
 				shouldResolve = false;
-				origToClone = null;
 				return;
 			}
 			shouldResolve = true;
