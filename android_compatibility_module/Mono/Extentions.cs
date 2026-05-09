@@ -13,6 +13,10 @@ public static class Extentions
     {
         return obj.GetComponent<T>();
     }
+    public static HashSet<A> Get<A, B>(this SimSystemManager<A, B> manager) where A : BaseSimObject, ILoadable<B>, new() where B : BaseObjectData, new()
+    {
+        return manager._container._hashSet;
+    }
     public static void AddListener(this UnityEvent ev, Action action)
     {
         ev.AddListener(() => action());
@@ -25,7 +29,7 @@ public static class Extentions
     {
         button.toggle_action = action;
     }
-    public static T Clone<T>(this T obj)
+    public static GUIStyle Clone(this GUIStyle obj)
     {
         return obj;
     }

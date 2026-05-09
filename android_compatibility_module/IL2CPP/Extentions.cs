@@ -42,6 +42,11 @@ public static class Extentions
         return -1;
     }
 
+    public static Il2CppSystem.Collections.Generic.HashSet<A> Get<A, B>(this SimSystemManager<A, B> manager) where A : BaseSimObject, new() where B : BaseObjectData, new()
+    {
+	    return manager._container._hashSet;
+    }
+
     public static nint Clone(this GUIStyle orig)
     {
 	    GUIStyle style = new GUIStyle(IL2CPP.il2cpp_object_new(Il2CppClassPointerStore<GUIStyle>.NativeClassPtr));
