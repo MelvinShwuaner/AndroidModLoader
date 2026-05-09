@@ -38,7 +38,7 @@ public static class IL2CPPHelper
 
     public static TextAsset CreateTextAsset(string content, string name)
     {
-        TextAsset textAsset = new TextAsset(TextAsset.CreateOptions.None, content);
+        TextAsset textAsset = new TextAsset(TextAsset.CreateOptions.CreateNativeObject, content);
         textAsset.name = name;
         return textAsset;
     }
