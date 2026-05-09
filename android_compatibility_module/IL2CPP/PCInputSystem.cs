@@ -351,13 +351,6 @@ public static class Helper
         return b ? "Enabled" : "Disabled";
     }
 }
-public enum TouchState
-{
-    NoTouch,
-    InWindow,
-    Touch,
-    MissTouch
-}
 
 public class PCInputSystem : WrappedBehaviour
 {
@@ -742,7 +735,13 @@ public class PCInputSystem : WrappedBehaviour
 
         GUILayout.EndScrollView();
     }
-    
+    public enum TouchState
+    {
+        NoTouch,
+        InWindow,
+        Touch,
+        MissTouch
+    }
     public static TouchState CheckTouch(out Vector2 pos, out PCInput selected)
     {
         selected = null;

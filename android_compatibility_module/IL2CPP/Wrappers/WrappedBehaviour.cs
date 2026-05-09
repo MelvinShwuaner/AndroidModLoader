@@ -1,7 +1,5 @@
 using System.Collections;
-using System.Reflection;
 using Il2CppInterop.Runtime;
-using NeoModLoader.services;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -126,9 +124,7 @@ public class WrappedMethodCollection
         {
             return value;
         }
-        value = new WrappedMethodCollection(type);
-        collections[type] = value;
-        return value;
+        return collections[type] = new WrappedMethodCollection(type);
     }
     private readonly Type Type;
     WrappedMethodCollection(Type type)

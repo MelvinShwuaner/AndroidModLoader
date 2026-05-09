@@ -180,7 +180,7 @@ public static class ResourcesPatch
        ResourceTreeNode node = tree.Find(path);
        if (node == null) return;
 
-       List<Object> append_list = node.GetAllObjects(systemTypeInstance.C());
+       List<Object> append_list = node.GetAllObjects(systemTypeInstance);
        if (append_list.Count == 0) return;
 
        var list = new List<Object>(__result);
@@ -391,7 +391,7 @@ public static class ResourcesPatch
 
         public ResourceTreeNode parent { get; internal set; }
 
-        public List<Object> GetAllObjects(Type systemTypeInstance)
+        public List<Object> GetAllObjects(Sys.Type systemTypeInstance)
         {
             var result = new List<Object>(objects.Count);
 

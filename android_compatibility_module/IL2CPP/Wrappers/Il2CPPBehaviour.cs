@@ -55,6 +55,7 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
     {
         lateupdate?.Invoke(WrappedBehaviour);
     }
+
     public void OnGUI()
     {
         ongui?.Invoke(WrappedBehaviour);
@@ -65,9 +66,11 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         return WrappedMethodCollection.Get(WrappedType)[Method];
     }
     [HideFromIl2Cpp]
-    internal WrappedBehaviour SetWrappedBehaviour(WrappedBehaviour Behaviour)
+    internal B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour
     {
         WrappedBehaviour = Behaviour;
+        WrappedType = Behaviour.GetType();
+        Behaviour.Wrapper = this;
         update = GetWrappedMethod("Update");
         start = GetWrappedMethod("Start");
         awake = GetWrappedMethod("Awake");
@@ -76,30 +79,11 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         ondisable = GetWrappedMethod("OnDisable");
         lateupdate = GetWrappedMethod("LateUpdate");
         ondestroy = GetWrappedMethod("OnDestroy");
-        RunAwake();
-        return Behaviour;
-    }
-    [HideFromIl2Cpp]
-    private void RunAwake()
-    {
         canawake = true;
         if (gameObject.activeInHierarchy)
         {
             Awake();
         }
-    }
-    internal B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour
-    {
-        WrappedBehaviour = Behaviour;
-        update = WrappedMethodCollection<B>.Get("Update");
-        start = WrappedMethodCollection<B>.Get("Start");
-        awake = WrappedMethodCollection<B>.Get("Awake");
-        ongui = WrappedMethodCollection<B>.Get("OnGUI");
-        onenable = WrappedMethodCollection<B>.Get("OnEnable");
-        ondisable = WrappedMethodCollection<B>.Get("OnDisable");
-        lateupdate = WrappedMethodCollection<B>.Get("LateUpdate");
-        ondestroy = WrappedMethodCollection<B>.Get("OnDestroy");
-        RunAwake();
         return Behaviour;
     }
     [HideFromIl2Cpp]
@@ -121,16 +105,6 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
     private WrappedAction lateupdate;
     private WrappedAction ondestroy;
     public Type WrappedType { [HideFromIl2Cpp] get; [HideFromIl2Cpp] private set; }
-    public WrappedBehaviour WrappedBehaviour
-    {
-        [HideFromIl2Cpp] get;
-        [HideFromIl2Cpp]
-        private set
-        {
-            field = value;
-            field.Wrapper = this;
-            WrappedType = field.GetType();
-        }
-    }
+    public WrappedBehaviour WrappedBehaviour { [HideFromIl2Cpp] get; [HideFromIl2Cpp] private set; }
 }
-public delegate void WrappedAction(WrappedBehaviour beh);
+public delegate void WrappedAction(WrappedBehaviour instance);

@@ -1,8 +1,6 @@
 ﻿using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
-using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -80,7 +78,7 @@ public class WorldBoxMod : MonoBehaviour
     {
         Others.unity_player_enabled = true;
         Transform = transform;
-        InactiveTransform = CreateGameObject("Inactive").transform;
+        InactiveTransform = new GameObject("Inactive").transform;
         InactiveTransform.SetParent(Transform);
         InactiveTransform.gameObject.SetActive(false);
         if (Config.isAndroid)

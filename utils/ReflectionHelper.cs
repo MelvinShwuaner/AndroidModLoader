@@ -136,7 +136,7 @@ internal static class ReflectionHelper
             instance, parameter).Compile();
     }
 
-    internal static D AsDelegate<D>(MethodInfo method_info) where D : Delegate
+    internal static D AsDelegate<D>(this MethodInfo method_info) where D : Delegate
     {
         List<ParameterExpression> paramExpressions = method_info.GetParameters()
             .Select((p, i) => Expression.Parameter(p.ParameterType, p.Name)).ToList();

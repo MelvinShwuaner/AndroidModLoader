@@ -194,7 +194,7 @@ namespace NeoModLoader.AndroidCompatibilityModule
 					BindingFlags.NonPublic |
 					BindingFlags.DeclaredOnly, Type.EmptyTypes);
 				if (method != null)
-					return ReflectionHelper.AsDelegate<WrappedAction>(method);
+					return method.AsDelegate<WrappedAction>();
 				type = type.BaseType;
 			}
 			return null;

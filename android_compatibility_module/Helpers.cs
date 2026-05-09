@@ -26,5 +26,5 @@ public class SmoothLoaderHelper
 
 public static class ActionHelper
 {
-    public static WorldAction Default = Converter.C<WorldAction>((BaseSimObject _, WorldTile _) => true);
+    public static readonly WorldAction Default = Converter.C<WorldAction>((BaseSimObject _, WorldTile _) => true);
 }

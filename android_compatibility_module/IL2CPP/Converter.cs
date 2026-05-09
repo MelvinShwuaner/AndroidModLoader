@@ -31,10 +31,10 @@ public static class Converter
     {
         return Il2CppType.From(type);
     }
-
     public static Type C(this System.Type type)
     {
-        return Type.GetType(type.AssemblyQualifiedName);
+        var name = type.AssemblyQualifiedName;
+        return Type.GetType(name) ?? Type.GetType("Il2Cpp"+name);
     }
     public static MonoException C(this Exception e)
     {
