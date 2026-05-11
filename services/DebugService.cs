@@ -2,14 +2,40 @@ using System.Diagnostics;
 using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.constants;
-
 namespace NeoModLoader.services;
-
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public class DebugAttribute : Attribute{}
+public class DoNotDebug : Attribute{}
 public static class DebugService
 {
-    static bool IsDebuggable(MethodBase method)
+    static DebugService()
+    {
+        Logger = new Debugger<Action<MethodBase, object[]>>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)));
+        ExceptionHandler = new Debugger<Action<MethodBase, Exception>>(null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
+        Profiler = new Debugger<Action<MethodBase, long>>(AccessTools.Method(typeof(Hooks), nameof(Hooks.prefix)), AccessTools.Method(typeof(Hooks), nameof(Hooks.postfix)));
+    }
+    class Hooks
+    {
+        public static void loghook(MethodBase __originalMethod, object[] __args)
+        {
+           Logger.Handler(__originalMethod, __args);
+        }
+        public static void prefix(out long __state)
+        {
+            __state = Stopwatch.GetTimestamp();
+        }
+        public static void postfix(
+            MethodBase __originalMethod,
+            long __state)
+        {
+            Profiler.Handler(__originalMethod, Stopwatch.GetTimestamp() - __state);
+        }
+        public static void finalizer(Exception __exception, MethodBase __originalMethod)
+        {
+            if (__exception is not null)
+                ExceptionHandler.Handler(__originalMethod, __exception);
+        }
+    }
+    public static bool IsDebuggable(MethodBase method)
     {
         if (method.IsAbstract || method.ContainsGenericParameters || method.IsSpecialName || method.Name.Contains("<"))
         {
@@ -17,11 +43,31 @@ public static class DebugService
         }
         return true;
     }
-    public abstract class Debugger
+    public class Debugger<T> where T : Delegate
     {
-        protected HarmonyMethod Prefix;
-        protected HarmonyMethod Postfix;
-        protected HarmonyMethod Finalizer;
+        public void AddHandler(T handler)
+        {
+            Handler = (T)Delegate.Combine(Handler, handler);
+        }
+        public T Handler { get; private set; }
+        public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Finalizer = null)
+        {
+            if (Prefix is not null)
+            {
+                this.Prefix = new HarmonyMethod(Prefix);
+            }
+            if (Postfix is not null)
+            {
+                this.Postfix = new HarmonyMethod(Postfix);
+            }
+            if (Finalizer is not null)
+            {
+                this.Finalizer = new HarmonyMethod(Finalizer);
+            }
+        }
+        HarmonyMethod Prefix;
+        HarmonyMethod Postfix;
+        HarmonyMethod Finalizer;
         public void Attach(Assembly assembly, Func<MethodBase, bool> predicate = null)
         {
             foreach (var Type in assembly.GetTypes())
@@ -31,7 +77,7 @@ public static class DebugService
         }
         public void Attach(Type Type, Func<MethodBase, bool> predicate = null)
         {
-            predicate ??= Default;
+            predicate ??= DefaultPredicate;
             foreach (var method in Type.GetMethods(
                          BindingFlags.Public |
                          BindingFlags.NonPublic |
@@ -63,59 +109,9 @@ public static class DebugService
             }
         }
     }
-    public class LogDebugger : Debugger
-    {
-        static void prefix(MethodBase __originalMethod)
-        {
-            LogService.Log(__originalMethod.Name + " from " + __originalMethod.DeclaringType?.Name);
-        }
-        public LogDebugger()
-        {
-            Prefix = new HarmonyMethod(AccessTools.Method(typeof(LogDebugger), nameof(prefix)));
-        }
-    }
-    public class ProfilerDebugger : Debugger
-    {
-        static Stopwatch stopwatch = new();
-        public static void prefix(out long __state)
-        {
-            __state = Stopwatch.GetTimestamp();
-        }
-        public static void postfix(
-            MethodBase __originalMethod,
-            long __state)
-        {
-            LogService.Log(
-                $"{__originalMethod.Name} from {__originalMethod.DeclaringType?.Name} took {Stopwatch.GetTimestamp() - __state}");
-        }
-        public ProfilerDebugger()
-        {
-            Prefix = new HarmonyMethod(AccessTools.Method(typeof(ProfilerDebugger), nameof(prefix)));
-            Postfix = new HarmonyMethod(AccessTools.Method(typeof(ProfilerDebugger), nameof(postfix)));
-        }
-    }
-    public class ExceptionDebugger : Debugger
-    {
-        static void finalizer(Exception __exception, MethodBase __original)
-        {
-            if (__exception is not null)
-               handler?.Invoke(__exception, __original);
-        }
-        public ExceptionDebugger()
-        {
-            Finalizer = new HarmonyMethod(AccessTools.Method(typeof(ExceptionDebugger), nameof(finalizer)));
-        }
-        public static void AddHandler(ExceptionHandler Handler)
-        {
-            handler += Handler;
-        }
-        public delegate void ExceptionHandler(Exception Exception, MethodBase Method);
-        public static event ExceptionHandler handler;
-    }
-    static readonly Harmony Patcher = new Harmony(Others.harmony_id);
-    public static readonly LogDebugger Logger = new();
-    public static readonly ProfilerDebugger Profiler = new();
-    public static readonly ExceptionDebugger ExceptionHandler = new();
-    public static readonly Func<MethodBase, bool> Default = _ => true;
-    public static readonly Func<MethodBase, bool> Attribute = method => method.IsDefined(typeof(DebugAttribute), true) || method.DeclaringType?.IsDefined(typeof(DebugAttribute), true) == true;
+    static readonly Harmony Patcher = new (Others.harmony_id);
+    public static readonly Debugger<Action<MethodBase, object[]>> Logger;
+    public static readonly Debugger<Action<MethodBase, Exception>> ExceptionHandler;
+    public static readonly Debugger<Action<MethodBase, long>> Profiler;
+    public static readonly Func<MethodBase, bool> DefaultPredicate = method => !method.IsDefined(typeof(DoNotDebug), true) && !method.DeclaringType!.IsDefined(typeof(DoNotDebug), true);
 }
