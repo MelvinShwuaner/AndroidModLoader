@@ -1,3 +1,4 @@
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,7 +39,7 @@ public class AutoGridLayoutGroup : AutoLayoutGroup<GridLayoutGroup, AutoGridLayo
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoGridLayoutGroup), typeof(GridLayoutGroup), typeof(AutoGridLayoutGroup),
+            CreateGameObject(nameof(AutoGridLayoutGroup), typeof(GridLayoutGroup), typeof(AutoGridLayoutGroup),
                 typeof(ContentSizeFitter));
 
         ContentSizeFitter fitter = game_object.GetComponent<ContentSizeFitter>();

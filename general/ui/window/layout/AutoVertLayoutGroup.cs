@@ -1,6 +1,8 @@
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Window.Layout;
 
 public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVertLayoutGroup>
@@ -27,7 +29,7 @@ public class AutoVertLayoutGroup : AutoLayoutGroup<VerticalLayoutGroup, AutoVert
     internal static void _init()
     {
         GameObject game_object =
-            new(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
+            CreateGameObject(nameof(AutoVertLayoutGroup), typeof(VerticalLayoutGroup), typeof(AutoVertLayoutGroup),
                 typeof(ContentSizeFitter));
         game_object.transform.SetParent(WorldBoxMod.Transform);
 

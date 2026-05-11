@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -8,16 +9,25 @@ using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.services;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
-using NeoModLoader.utils.Sounds;
 using UnityEngine;
-
+using Il2CppInterop.Runtime.Injection;
 namespace NeoModLoader;
-
 /// <summary>
 /// Main class
 /// </summary>
+[MelonLoader.RegisterTypeInIl2Cpp]
 public class WorldBoxMod : MonoBehaviour
 {
+#if IL2CPP
+    public WorldBoxMod(IntPtr ptr) : base(ptr)
+    {
+    }
+
+    public WorldBoxMod() : base(ClassInjector.DerivedConstructorPointer<WorldBoxMod>())
+    {
+        ClassInjector.DerivedConstructorBody(this);
+    }
+#endif
     /// <summary>
     /// All successfully loaded mods.
     /// </summary>
@@ -55,7 +65,7 @@ public class WorldBoxMod : MonoBehaviour
     private bool initialized_successfully = false;
 
     private static void UnityExplorerFix() {
-        Harmony harmony = new Harmony(Others.harmony_id);
+        HarmonyLib.Harmony harmony = new HarmonyLib.Harmony(Others.harmony_id);
         MethodInfo original = AccessTools.Method(typeof(Assembly), nameof(Assembly.LoadFrom), new[] { typeof(string) });
         MethodInfo standin = AccessTools.Method(typeof(WorldBoxMod), nameof(LoadFrom));
         ReversePatcher reversePatcher = harmony.CreateReversePatcher(original, new HarmonyMethod(standin));
@@ -64,26 +74,26 @@ public class WorldBoxMod : MonoBehaviour
     }
 
     private static Assembly LoadFrom(string path) => Assembly.LoadFrom(path);
-
     private void Start()
     {
         Others.unity_player_enabled = true;
         Transform = transform;
-
         InactiveTransform = new GameObject("Inactive").transform;
         InactiveTransform.SetParent(Transform);
         InactiveTransform.gameObject.SetActive(false);
-
+        if (Config.isAndroid)
+        {
+            GameObject services = GameObject.Find("Services");
+            GameObject modloader = new GameObject("ModLoader");
+            modloader.transform.parent = services.transform;
+        }
         LogService.Init();
-
-        if (ReflectionHelper.IsAssemblyLoaded("0Harmony")) {
+        if (ReflectionHelper.IsAssemblyLoaded("0Harmony") && !Config.isAndroid) {
             UnityExplorerFix();
         }
-
         fileSystemInitialize();
         LogService.LogInfo($"NeoModLoader Version: {InternalResourcesGetter.GetCommit()}");
     }
-
     private void Update()
     {
         if (!Config.game_loaded) return;
@@ -91,20 +101,22 @@ public class WorldBoxMod : MonoBehaviour
         {
             TabManager._checkNewTabs();
         }
-
+        
         if (initialized)
         {
             return;
         }
 
         initialized = true;
-        ModUploadAuthenticationService.AutoAuth();
+        if(!Config.isAndroid)
+            ModUploadAuthenticationService.AutoAuth();
+        
         HarmonyUtils._init();
         Harmony.CreateAndPatchAll(typeof(LM), Others.harmony_id);
         Harmony.CreateAndPatchAll(typeof(ResourcesPatch), Others.harmony_id);
+     
         if (!SmoothLoader.isLoading()) SmoothLoader.prepare();
-
-        SmoothLoader.add(() =>
+        SmoothLoaderHelper.add(() =>
         {
             ResourcesPatch.Initialize();
             LoadLocales();
@@ -114,11 +126,11 @@ public class WorldBoxMod : MonoBehaviour
             WrappedPowersTab._init();
             NCMSCompatibleLayer.PreInit();
             ModInfoUtils.InitializeModCompileCache();
+            AndroidHelper.Init();
         }, "Initialize NeoModLoader");
-
-        List<ModDependencyNode> mod_nodes = new();
         ModEnablePlan startup_enable_plan = null;
-        SmoothLoader.add(() =>
+        List<ModDependencyNode> mod_nodes = new();
+        SmoothLoaderHelper.add(() =>
         {
             ModCompileLoadService.loadInfoOfBepInExPlugins();
 
@@ -129,12 +141,12 @@ public class WorldBoxMod : MonoBehaviour
 
             ModCompileLoadService.prepareCompile(mod_nodes);
         }, "Load Mods Info And Prepare Mods");
-        SmoothLoader.add(() =>
+        SmoothLoaderHelper.add(() =>
         {
             var mods_to_load = new List<ModDeclare>();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add(() =>
+                SmoothLoaderHelper.add(() =>
                 {
                     if (ModCompileLoadService.compileMod(mod))
                     {
@@ -149,7 +161,7 @@ public class WorldBoxMod : MonoBehaviour
             AssetLinker Linker = new();
             foreach (var mod in mod_nodes)
             {
-                SmoothLoader.add(() =>
+                SmoothLoaderHelper.add(() =>
                 {
                     if (mods_to_load.Contains(mod.mod_decl))
                     {
@@ -163,7 +175,7 @@ public class WorldBoxMod : MonoBehaviour
                 }, "Load Resources From Mod " + mod.mod_decl.Name);
             }
 
-            SmoothLoader.add(() =>
+            SmoothLoaderHelper.add(() =>
             {
                 ModCompileLoadService.loadMods(mods_to_load);
                 Linker.AddAssets();
@@ -178,20 +190,19 @@ public class WorldBoxMod : MonoBehaviour
                         ModDepenSolveService.RollbackEnablePlan(startup_enable_plan);
                     }
                 }
-
                 ModInfoUtils.SaveModRecords();
                 NCMSCompatibleLayer.Init();
                 var successfulInit = new Dictionary<IMod, bool>();
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add(() =>
+                    SmoothLoaderHelper.add(() =>
                     {
                         successfulInit.Add(mod, ModCompileLoadService.TryInitMod(mod));
                     }, "Init Mod " + mod.GetDeclaration().Name);
                 }
                 foreach (IMod mod in LoadedMods.Where(mod => mod is IStagedLoad))
                 {
-                    SmoothLoader.add(() =>
+                    SmoothLoaderHelper.add(() =>
                     {
                         if (successfulInit.ContainsKey(mod) && successfulInit[mod])
                         {
@@ -201,10 +212,9 @@ public class WorldBoxMod : MonoBehaviour
                 }
             }, "Load Mods");
 
-            SmoothLoader.add(() =>
+            SmoothLoaderHelper.add(() =>
             {
                 ModWorkshopService.Init();
-
                 UIManager.init();
 
                 ModInfoUtils.DealWithBepInExModLinkRequests();
@@ -212,10 +222,10 @@ public class WorldBoxMod : MonoBehaviour
                 LM.ApplyLocale();
                 initialized_successfully = true;
             }, "NeoModLoader Post Initialize");
-            SmoothLoader.add(ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
+            SmoothLoaderHelper.add(ExternalModInstallService.CheckExternalModInstall, "Check External Mods to Install");
         }, "Compile Mods And Load resources");
     }
-
+    
     private void LoadLocales()
     {
         string[] resources = NeoModLoaderAssembly.GetManifestResourceNames();
@@ -236,7 +246,6 @@ public class WorldBoxMod : MonoBehaviour
             Directory.CreateDirectory(Paths.ModsPath);
             LogService.LogInfo($"Create Mods folder at {Paths.ModsPath}");
         }
-
         if (!Directory.Exists(Paths.CompiledModsPath))
         {
             Directory.CreateDirectory(Paths.CompiledModsPath);
@@ -254,7 +263,7 @@ public class WorldBoxMod : MonoBehaviour
             File.Create(Paths.ModCompileRecordPath).Close();
             LogService.LogInfo($"Create mod_compile_records.json at {Paths.ModCompileRecordPath}");
         }
-
+        string name = Config.isAndroid ? "_mobile" : "";
         void extractAssemblies()
         {
             var resources = NeoModLoaderAssembly.GetManifestResourceNames();
@@ -264,7 +273,7 @@ public class WorldBoxMod : MonoBehaviour
                 {
                     if (resource.Contains("Assembly-CSharp-Publicized")) continue;
                     if (resource.Contains("AutoUpdate")) continue;
-                    var file_name = resource.Replace("NeoModLoader.resources.assemblies.", "");
+                    var file_name = resource.Replace($"NeoModLoader{name}.resources.assemblies.", "");
                     var file_path = Path.Combine(Paths.NMLAssembliesPath, file_name).Replace("-renamed", "");
 
                     using var stream = NeoModLoaderAssembly.GetManifestResourceStream(resource);
@@ -296,12 +305,11 @@ public class WorldBoxMod : MonoBehaviour
                 extractAssemblies();
             }
         }
-
         try
         {
             using var stream =
                 NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
+                    $"NeoModLoader{name}.resources.assemblies.Assembly-CSharp-Publicized.dll");
             if (File.Exists(Paths.PublicizedAssemblyPath))
             {
                 var modupdate_time = new FileInfo(Paths.NMLModPath).LastWriteTime;
@@ -311,7 +319,8 @@ public class WorldBoxMod : MonoBehaviour
                     LogService.LogInfo($"NeoModLoader.dll is newer than Assembly-CSharp-Publicized.dll, " +
                                        $"re-extract Assembly-CSharp-Publicized.dll from NeoModLoader.dll");
                     File.Delete(Paths.PublicizedAssemblyPath);
-                    using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.Create, FileAccess.Write);
+                    using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.Create,
+                        FileAccess.Write);
                     stream.CopyTo(file);
                 }
             }
@@ -326,11 +335,10 @@ public class WorldBoxMod : MonoBehaviour
             File.Delete(Paths.PublicizedAssemblyPath);
             using var stream =
                 NeoModLoaderAssembly.GetManifestResourceStream(
-                    "NeoModLoader.resources.assemblies.Assembly-CSharp-Publicized.dll");
+                    $"NeoModLoader{name}.resources.assemblies.Assembly-CSharp-Publicized.dll");
             using var file = new FileStream(Paths.PublicizedAssemblyPath, FileMode.CreateNew, FileAccess.Write);
             stream.CopyTo(file);
         }
-
         foreach (var file_full_path in Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"))
         {
             try
@@ -372,9 +380,10 @@ public class WorldBoxMod : MonoBehaviour
         if (!File.Exists(Paths.NMLAutoUpdateModulePath))
         {
             using Stream stream = NeoModLoaderAssembly.GetManifestResourceStream(
-                "NeoModLoader.resources.assemblies.NeoModLoader.AutoUpdate.dll");
+                $"NeoModLoader{name}.resources.assemblies.NeoModLoader.AutoUpdate{name}.dll");
             using var file = new FileStream(Paths.NMLAutoUpdateModulePath, FileMode.CreateNew, FileAccess.Write);
             stream.CopyTo(file);
         }
+        
     }
 }

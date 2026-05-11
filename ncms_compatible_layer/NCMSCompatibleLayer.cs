@@ -23,7 +23,7 @@ namespace NeoModLoader.ncms_compatible_layer
     using UnityEngine.UI;
     using NeoModLoader.services;
     using System.Collections.Generic;
-
+    using static NeoModLoader.AndroidCompatibilityModule.Converter;
 
     internal class Mod
     {
@@ -37,7 +37,7 @@ namespace NeoModLoader.ncms_compatible_layer
         {
             OnDebug += new Action(() => { LogService.LogInfo($""Debug toggled for mod {Info.Name}""); });
 
-            button.onClick.AddListener(new UnityAction(() =>
+            button.onClick.AddListener(C<UnityAction>(() =>
             {
                 if (debugClicked < 10)
                 {
@@ -58,7 +58,7 @@ namespace NeoModLoader.ncms_compatible_layer
                 string hash = $""{name}-{pivotX}-{pivotY}-{pixelsPerUnit}"";
                 if (sprite_cache.TryGetValue(hash, out var sprite))
                     return sprite;
-                Texture2D texture2D = new Texture2D(0, 0);
+                Texture2D texture2D = new Texture2D(0, 0, TextureFormat.RGBA32, false);
                 texture2D.LoadImage(GetBytes(name));
                 texture2D.anisoLevel = 0;
                 texture2D.filterMode = FilterMode.Point;

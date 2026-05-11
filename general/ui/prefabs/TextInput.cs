@@ -1,7 +1,9 @@
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 namespace NeoModLoader.General.UI.Prefabs;
 
 /// <summary>
@@ -10,6 +12,7 @@ namespace NeoModLoader.General.UI.Prefabs;
 /// <inheritdoc cref="APrefab{T}" />
 public class TextInput : APrefab<TextInput>
 {
+   
     [SerializeField] private Image _icon;
 
     [SerializeField] private InputField _input;
@@ -17,7 +20,6 @@ public class TextInput : APrefab<TextInput>
     [SerializeField] private Text _text;
 
     [SerializeField] private TipButton _tip_button;
-
     public Image icon => _icon;
     public InputField input => _input;
 
@@ -43,7 +45,7 @@ public class TextInput : APrefab<TextInput>
     /// <param name="value_update">Callback when value updated</param>
     /// <param name="pIcon">icon at the right</param>
     /// <param name="pBackground"></param>
-    public virtual void Setup(string value, UnityAction<string> value_update, Sprite pIcon = null,
+    public virtual void Setup(string value, Action<string> value_update, Sprite pIcon = null,
         Sprite pBackground = null)
     {
         if (!Initialized) Init();
@@ -86,14 +88,14 @@ public class TextInput : APrefab<TextInput>
 
     internal static void _init()
     {
-        GameObject text_input = new GameObject("TextInput", typeof(TipButton), typeof(Image));
+        GameObject text_input = CreateGameObject("TextInput", typeof(TipButton), typeof(Image));
         text_input.transform.SetParent(WorldBoxMod.Transform);
 
         Image bg = text_input.GetComponent<Image>();
         bg.sprite = SpriteTextureLoader.getSprite("ui/special/darkInputFieldEmpty");
         bg.type = Image.Type.Sliced;
 
-        GameObject input_field = new GameObject("InputField", typeof(Text), typeof(InputField));
+        GameObject input_field = CreateGameObject("InputField", typeof(Text), typeof(InputField));
         input_field.transform.SetParent(text_input.transform);
         input_field.transform.localScale = Vector3.one;
         input_field.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
@@ -108,7 +110,7 @@ public class TextInput : APrefab<TextInput>
         input.text = "";
         input.lineType = InputField.LineType.SingleLine;
 
-        GameObject icon = new GameObject("Icon", typeof(Image));
+        GameObject icon = CreateGameObject("Icon", typeof(Image));
         icon.transform.SetParent(text_input.transform);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<Image>().sprite = SpriteTextureLoader.getSprite("ui/special/inputFieldIcon");

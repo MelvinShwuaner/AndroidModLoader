@@ -1,5 +1,7 @@
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
+using NeoModLoader.utils;
 
 namespace NeoModLoader.General.Game.extensions;
 
@@ -39,14 +41,14 @@ internal static class AssetExtensionInternal<TAsset, TLibrary>
         foreach (TAsset asset in pLibrary.list) pAction(asset);
 
         state.action = asset => { pAction(asset); };
-        state.done.UnionWith(pLibrary.list.Select(x => x.id));
+        state.done.UnionWith(pLibrary.list.C().Select(x => x.id));
 
         if (!_states.ContainsKey(pLibrary)) _states.Add(pLibrary, new List<LibraryState>());
         _states[pLibrary].Add(state);
 
         if (_assetlibrary_patched) return;
         _assetlibrary_patched = true;
-        new Harmony($"{CoreConstants.ModName}.ForEach").Patch(
+        new HarmonyLib.Harmony($"{CoreConstants.ModName}.ForEach").Patch(
             AccessTools.Method(typeof(AssetLibrary<TAsset>), nameof(AssetLibrary<TAsset>.add)),
             postfix: new HarmonyMethod(
                 AccessTools.FirstMethod(typeof(AssetExtensionInternal<TAsset, TLibrary>),

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using NeoModLoader.api.attributes;
 using NeoModLoader.services;
@@ -139,14 +140,7 @@ public static class RF
         FieldInfo fieldInfo = typeof(TI).GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (fieldInfo != null) return (TF)fieldInfo.GetValue(null);
         LogService.LogWarning($"Cannot find '{name}' in type {typeof(TI).FullName}. Return default value.");
-        try
-        {
-            throw new Exception();
-        }
-        catch (Exception e)
-        {
-            LogService.LogWarning(e.StackTrace);
-        }
+        LogService.LogWarning(new StackTrace().ToString());
         return default;
     }
     /// <summary>
@@ -161,14 +155,7 @@ public static class RF
         FieldInfo fieldInfo = type.GetField(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (fieldInfo != null) return (TF)fieldInfo.GetValue(null);
         LogService.LogWarning($"Cannot find '{name}' in type {type.FullName}. Return default value.");
-        try
-        {
-            throw new Exception();
-        }
-        catch (Exception e)
-        {
-            LogService.LogWarning(e.StackTrace);
-        }
+        LogService.LogWarning(new StackTrace().ToString());
         return default;
     }
     /// <summary>
@@ -213,14 +200,7 @@ public static class RF
             return;
         }
         LogService.LogWarning($"Cannot find '{name}' in type {typeof(TI).FullName}. No action taken.");
-        try
-        {
-            throw new Exception();
-        }
-        catch (Exception e)
-        {
-            LogService.LogWarning(e.StackTrace);
-        }
+        LogService.LogWarning(new StackTrace().ToString());
     }
     /// <summary>
     /// Set static field value typed <typeparamref name="TF"/> of <paramref name="TI"/>
@@ -238,13 +218,6 @@ public static class RF
             return;
         }
         LogService.LogWarning($"Cannot find '{name}' in type {TI.FullName}. No action taken.");
-        try
-        {
-            throw new Exception();
-        }
-        catch (Exception e)
-        {
-            LogService.LogWarning(e.StackTrace);
-        }
+        LogService.LogWarning(new StackTrace().ToString());
     }
 }

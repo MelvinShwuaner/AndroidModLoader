@@ -2,9 +2,13 @@ using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using System.Globalization;
+using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
-
+using NeoModLoader.utils;
 namespace NeoModLoader.ui;
 
 /// <summary>
@@ -50,14 +54,14 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
     private static void _createItemPrefab()
     {
-        GameObject config_item = new GameObject("ConfigItem", typeof(Image), typeof(VerticalLayoutGroup));
+        GameObject config_item = CreateGameObject("ConfigItem", typeof(Image), typeof(VerticalLayoutGroup));
         VerticalLayoutGroup layout = config_item.GetComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleLeft;
         layout.padding = new(4, 4, 3, 3);
 
         #region SWITCH
 
-        GameObject switch_area = new GameObject("SwitchArea", typeof(HorizontalLayoutGroup));
+        GameObject switch_area = CreateGameObject("SwitchArea", typeof(HorizontalLayoutGroup));
         HorizontalLayoutGroup switch_layout = switch_area.GetComponent<HorizontalLayoutGroup>();
         switch_layout.childControlWidth = false;
         switch_layout.childControlHeight = false;
@@ -67,11 +71,11 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         var switch_button = Instantiate(General.UI.Prefabs.SwitchButton.Prefab, switch_area.transform);
         switch_button.transform.localScale = Vector3.one;
         switch_button.name = "Button";
-        GameObject switch_config_icon = new GameObject("Icon", typeof(Image));
+        GameObject switch_config_icon = CreateGameObject("Icon", typeof(Image));
         switch_config_icon.transform.SetParent(switch_area.transform);
         switch_config_icon.transform.localScale = Vector3.one;
         switch_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
-        GameObject switch_config_text = new GameObject("Text", typeof(Text));
+        GameObject switch_config_text = CreateGameObject("Text", typeof(Text));
         switch_config_text.transform.SetParent(switch_area.transform);
         switch_config_text.transform.localScale = Vector3.one;
         switch_config_text.GetComponent<RectTransform>().sizeDelta = new(100, 16);
@@ -85,7 +89,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
         #region SLIDER
 
-        GameObject slider_area = new GameObject("SliderArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
+        GameObject slider_area = CreateGameObject("SliderArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
         slider_area.transform.SetParent(config_item.transform);
         slider_area.transform.localScale = Vector3.one;
         VerticalLayoutGroup slider_layout = slider_area.GetComponent<VerticalLayoutGroup>();
@@ -95,7 +99,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         slider_layout.childAlignment = TextAnchor.UpperCenter;
         slider_layout.spacing = 4;
 
-        GameObject slider_info = new GameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        GameObject slider_info = CreateGameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         slider_info.transform.SetParent(slider_area.transform);
         slider_info.transform.localScale = Vector3.one;
         slider_info.GetComponent<RectTransform>().sizeDelta = new(0, 18);
@@ -103,11 +107,11 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         slider_info_layout.childControlWidth = false;
         slider_info_layout.childControlHeight = false;
         slider_info_layout.childAlignment = TextAnchor.MiddleLeft;
-        GameObject slider_config_icon = new GameObject("Icon", typeof(Image));
+        GameObject slider_config_icon = CreateGameObject("Icon", typeof(Image));
         slider_config_icon.transform.SetParent(slider_info.transform);
         slider_config_icon.transform.localScale = Vector3.one;
         slider_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
-        GameObject slider_config_text = new GameObject("Text", typeof(Text));
+        GameObject slider_config_text = CreateGameObject("Text", typeof(Text));
         slider_config_text.transform.SetParent(slider_info.transform);
         slider_config_text.transform.localScale = Vector3.one;
         slider_config_text.GetComponent<RectTransform>().sizeDelta = new(100, 16);
@@ -116,7 +120,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         slider_text.alignment = TextAnchor.MiddleLeft;
         slider_text.resizeTextForBestFit = true;
 
-        GameObject slider_control = new GameObject("Control", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        GameObject slider_control = CreateGameObject("Control", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         slider_control.transform.SetParent(slider_area.transform);
         slider_control.transform.localScale = Vector3.one;
         slider_control.GetComponent<RectTransform>().sizeDelta = new(0, 20);
@@ -141,7 +145,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
         #region TEXT
 
-        GameObject text_area = new GameObject("TextArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
+        GameObject text_area = CreateGameObject("TextArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
         text_area.transform.SetParent(config_item.transform);
         text_area.transform.localScale = Vector3.one;
         VerticalLayoutGroup text_layout = text_area.GetComponent<VerticalLayoutGroup>();
@@ -150,7 +154,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         text_layout.childAlignment = TextAnchor.UpperCenter;
         text_layout.spacing = 4;
 
-        GameObject text_info = new GameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        GameObject text_info = CreateGameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         text_info.transform.SetParent(text_area.transform);
         text_info.transform.localScale = Vector3.one;
         text_info.GetComponent<RectTransform>().sizeDelta = new(0, 18);
@@ -160,11 +164,11 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         text_info_layout.childForceExpandWidth = false;
         text_info_layout.childAlignment = TextAnchor.MiddleLeft;
         text_info_layout.spacing = 8;
-        GameObject text_config_icon = new GameObject("Icon", typeof(Image));
+        GameObject text_config_icon = CreateGameObject("Icon", typeof(Image));
         text_config_icon.transform.SetParent(text_info.transform);
         text_config_icon.transform.localScale = Vector3.one;
         text_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
-        GameObject text_config_text = new GameObject("Text", typeof(Text));
+        GameObject text_config_text = CreateGameObject("Text", typeof(Text));
         text_config_text.transform.SetParent(text_info.transform);
         text_config_text.transform.localScale = Vector3.one;
         text_config_text.GetComponent<RectTransform>().sizeDelta = new(100, 16);
@@ -183,7 +187,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
         #region SELECT
 
-        GameObject select_area = new GameObject("SelectArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
+        GameObject select_area = CreateGameObject("SelectArea", typeof(RectTransform), typeof(VerticalLayoutGroup));
         select_area.transform.SetParent(config_item.transform);
         select_area.transform.localScale = Vector3.one;
         VerticalLayoutGroup select_layout = select_area.GetComponent<VerticalLayoutGroup>();
@@ -193,7 +197,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         select_layout.childAlignment = TextAnchor.UpperCenter;
         select_layout.spacing = 4;
 
-        GameObject select_info = new GameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        GameObject select_info = CreateGameObject("Info", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         select_info.transform.SetParent(select_area.transform);
         select_info.transform.localScale = Vector3.one;
         select_info.GetComponent<RectTransform>().sizeDelta = new(0, 18);
@@ -204,12 +208,12 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         select_info_layout.childAlignment = TextAnchor.MiddleLeft;
         select_info_layout.spacing = 8;
 
-        GameObject select_config_icon = new GameObject("Icon", typeof(Image));
+        GameObject select_config_icon = CreateGameObject("Icon", typeof(Image));
         select_config_icon.transform.SetParent(select_info.transform);
         select_config_icon.transform.localScale = Vector3.one;
         select_config_icon.GetComponent<RectTransform>().sizeDelta = new(16, 16);
 
-        GameObject select_config_text = new GameObject("Text", typeof(Text));
+        GameObject select_config_text = CreateGameObject("Text", typeof(Text));
         select_config_text.transform.SetParent(select_info.transform);
         select_config_text.transform.localScale = Vector3.one;
         select_config_text.GetComponent<RectTransform>().sizeDelta = new(140, 16);
@@ -219,7 +223,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         select_text.resizeTextForBestFit = true;
         select_text.resizeTextMinSize = 1;
 
-        GameObject options_grid = new GameObject("Options", typeof(RectTransform), typeof(GridLayoutGroup),
+        GameObject options_grid = CreateGameObject("Options", typeof(RectTransform), typeof(GridLayoutGroup),
             typeof(ContentSizeFitter));
         options_grid.transform.SetParent(select_area.transform);
         options_grid.transform.localScale = Vector3.one;
@@ -249,7 +253,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
     private static void _createGridPrefab()
     {
-        GameObject config_grid = new GameObject("ConfigGrid", typeof(VerticalLayoutGroup));
+        GameObject config_grid = CreateGameObject("ConfigGrid", typeof(VerticalLayoutGroup));
 
         VerticalLayoutGroup layout = config_grid.GetComponent<VerticalLayoutGroup>();
         layout.childControlHeight = true;
@@ -261,7 +265,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         ContentSizeFitter fitter = config_grid.GetComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         */
-        GameObject grid_title = new GameObject("Title", typeof(Text));
+        GameObject grid_title = CreateGameObject("Title", typeof(Text));
         grid_title.transform.SetParent(config_grid.transform);
         grid_title.transform.localScale = Vector3.one;
         Text title = grid_title.GetComponent<Text>();
@@ -273,7 +277,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         title.alignment = TextAnchor.MiddleCenter;
 
 
-        GameObject grid = new GameObject("Grid", typeof(Image), typeof(VerticalLayoutGroup));
+        GameObject grid = CreateGameObject("Grid", typeof(Image), typeof(VerticalLayoutGroup));
         grid.transform.SetParent(config_grid.transform);
         grid.transform.localScale = Vector3.one;
         layout = grid.GetComponent<VerticalLayoutGroup>();
@@ -339,7 +343,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         _config = null;
     }
 
-    class ModConfigGrid : MonoBehaviour
+    class ModConfigGrid : WrappedBehaviour
     {
         private Transform grid;
         private Text title;
@@ -365,7 +369,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
         }
     }
 
-    class ModConfigListItem : MonoBehaviour
+    class ModConfigListItem : WrappedBehaviour
     {
         public GameObject switch_area;
         public GameObject slider_area;
@@ -405,7 +409,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
             TextInput text_input = text_area.transform.Find("Input").GetComponent<TextInput>();
 
-            text_input.Setup(pItem.TextVal, pStringVal =>
+            text_input.Setup(pItem.TextVal, (string pStringVal) =>
             {
                 if (!Instance._modifiedItems.ContainsKey(pItem))
                 {
@@ -435,7 +439,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_area.SetActive(true);
             TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
             SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
-            slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, pFloatVal =>
+            slider_bar.Setup(pItem.FloatVal, pItem.MinFloatVal, pItem.MaxFloatVal, (float pFloatVal) =>
             {
                 mark_modified(pItem);
                 pItem.SetValue(pFloatVal, true);
@@ -444,7 +448,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
 
-            value_input.Setup(pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture), pTextVal =>
+            value_input.Setup(pItem.FloatVal.ToString("F2", CultureInfo.InvariantCulture), (string pTextVal) =>
             {
                 if (!TryParseFloat(pTextVal, out float parsed))
                 {
@@ -476,7 +480,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_area.SetActive(true);
             TextInput value_input = slider_area.transform.Find("Control/Input").GetComponent<TextInput>();
             SliderBar slider_bar = slider_area.transform.Find("Control/Slider").GetComponent<SliderBar>();
-            slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal, pIntVal =>
+            slider_bar.Setup(pItem.IntVal, pItem.MinIntVal, pItem.MaxIntVal,(float pIntVal) =>
             {
                 mark_modified(pItem);
                 pItem.SetValue(pIntVal, true);
@@ -485,7 +489,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
             slider_bar.tip_button.textOnClick = pItem.Id;
             slider_bar.tip_button.text_description_2 = pItem.Id + " Description";
 
-            value_input.Setup(pItem.IntVal.ToString(CultureInfo.InvariantCulture), pTextVal =>
+            value_input.Setup(pItem.IntVal.ToString(CultureInfo.InvariantCulture), (string pTextVal) =>
             {
                 if (!TryParseInt(pTextVal, out int parsed))
                 {
@@ -552,7 +556,7 @@ public class ModConfigureWindow : AbstractWindow<ModConfigureWindow>
 
             if (option_count == 0)
             {
-                GameObject empty = new GameObject("Empty", typeof(Text));
+                GameObject empty = CreateGameObject("Empty", typeof(Text));
                 empty.transform.SetParent(options_root);
                 empty.transform.localScale = Vector3.one;
                 empty.GetComponent<RectTransform>().sizeDelta = new Vector2(170, 20);

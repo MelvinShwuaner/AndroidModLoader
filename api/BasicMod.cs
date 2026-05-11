@@ -1,9 +1,10 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 using NeoModLoader.services;
 using UnityEngine;
-
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 namespace NeoModLoader.api;
-
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 /// <summary>
 /// If you want to create a simple mod, you can inherit this class.
 /// <para>Then NML will find this class in your compiled mod, then load it into ModLoader provided by WorldBox</para>
@@ -15,7 +16,7 @@ namespace NeoModLoader.api;
 /// OnModLoad -> Awake -> OnEnable -> Start -> Update
 /// </remarks>
 /// </summary>
-public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged, IStagedLoad
+public abstract class BasicMod<T> : WrappedBehaviour, IMod, ILocalizable, IConfigurable, IFeatureLoadManaged, IStagedLoad
     where T : BasicMod<T>
 {
     private ModConfig  _config  = null!;
@@ -45,7 +46,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
                 _prefab_library = transform.Find("PrefabLibrary");
                 if (_prefab_library == null)
                 {
-                    _prefab_library = new GameObject("PrefabLibrary").transform;
+                    _prefab_library = CreateGameObject("PrefabLibrary").transform;
                     _prefab_library.SetParent(transform);
                 }
             }
@@ -146,7 +147,7 @@ public abstract class BasicMod<T> : MonoBehaviour, IMod, ILocalizable, IConfigur
     /// <returns></returns>
     public static GameObject NewPrefab(string name)
     {
-        var obj = new GameObject(name);
+        var obj = CreateGameObject(name);
         obj.transform.SetParent(Instance.PrefabLibrary);
         return obj;
     }

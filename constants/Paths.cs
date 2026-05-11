@@ -1,5 +1,7 @@
 using System.Reflection;
 using UnityEngine;
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.services;
 
 namespace NeoModLoader.constants;
 
@@ -9,6 +11,10 @@ namespace NeoModLoader.constants;
 public static class Paths
 {
     /// <summary>
+    /// path to melon loader assemblies if on android
+    /// </summary>
+    public static readonly string MelonAssemblies = Combine(GamePath, "MelonLoader", "net8");
+    /// <summary>
     /// Path to the mod loader file
     /// </summary>
     public static readonly string NMLModPath;
@@ -16,25 +22,30 @@ public static class Paths
     /// <summary>
     /// Path to persistent data
     /// </summary>
-    public static readonly string PersistentDataPath = Combine(Application.persistentDataPath);
+    public static readonly string PersistentDataPath = !Config.isAndroid ? Combine(Application.persistentDataPath) : Combine(GamePath, "UserData");
 
     /// <summary>
-    /// Path to folder StreamingAssets
+    /// Path to folder StreamingAssets, or base melon path if on android
     /// </summary>
-    public static readonly string StreamingAssetsPath = Combine(Application.streamingAssetsPath);
+    public static readonly string StreamingAssetsPath = !Config.isAndroid ? Application.streamingAssetsPath : GamePath;
 
     /// <summary>
     /// Path to game native Mods folder
     /// </summary>
-    public static readonly string NativeModsPath = Combine(StreamingAssetsPath, "mods");
+    public static readonly string NativeModsPath = Combine(StreamingAssetsPath, Config.isAndroid ? "mods" : "Mods");
 
     /// <summary>
-    /// Path to game native Managed folder
+    /// Path to game native Managed folder, on android this is the .NET folder
     /// </summary>
-    public static readonly string ManagedPath = Others.is_editor
-        ? Combine(StreamingAssetsPath, "..", ".Managed")
-        : Combine(StreamingAssetsPath, "..", "Managed");
-
+    public static readonly string ManagedPath = !Config.isAndroid
+        ? Others.is_editor
+            ? Combine(StreamingAssetsPath, "..", ".Managed")
+            : Combine(StreamingAssetsPath, "..", "Managed")
+        : "/data/data/com.mkarpenko.worldbox/dotnet/shared/Microsoft.NETCore.App/8.0.6";
+    /// <summary>
+    /// the Il2cpp Assemblies. on android
+    /// </summary>
+    public static readonly string Il2CppAssemblies = Combine(GamePath, "MelonLoader", "Il2CppAssemblies");
     /// <summary>
     /// Path to folder contains NML's cache
     /// </summary>
@@ -49,10 +60,10 @@ public static class Paths
     ///     Path to file of auto update module
     /// </summary>
     public static readonly string NMLAutoUpdateModulePath =
-        Combine(NativeModsPath, "NeoModLoader.AutoUpdate_memload.dll");
+        Combine(NativeModsPath, Config.isAndroid ? "NeoModLoader.AutoUpdate_mobile_memload.dll" : "NeoModLoader.AutoUpdate_memload.dll");
 
     /// <summary>
-    /// Path to the publicized Assembly-CSharp.dll file
+    /// Path to the publicized Assembly-CSharp.dll file, on android this is used as IL replacements for transpiler support
     /// </summary>
     public static readonly string PublicizedAssemblyPath = Combine(NMLPath, "Assembly-CSharp-Publicized.dll");
 
@@ -61,6 +72,7 @@ public static class Paths
     /// </summary>
     public static readonly string ModsConfigPath = Combine(PersistentDataPath, "mods_config");
 
+    public static readonly string PCInputConfigPath = Combine(PersistentDataPath, "PCInputConfig.json");
     /// <summary>
     /// Path to BepInEx plugins folder
     /// </summary>
@@ -70,7 +82,7 @@ public static class Paths
     /// Path to Mods folder provided by NML
     /// </summary>
     public static readonly string ModsPath =
-        Others.is_editor ? Combine(GamePath, "Assets", "Mods") : Combine(GamePath, "Mods");
+        Others.is_editor ? Combine(GamePath, "Assets", "Mods") : Combine(GamePath, Config.isAndroid ? "NMLMods" : "Mods");
 
     /// <summary>
     /// Path to extracted Assemblies cache
@@ -162,16 +174,15 @@ public static class Paths
             nml_mod_path = Combine(NativeModsPath, "NeoModLoader.dll");
             if (!File.Exists(nml_mod_path)) nml_mod_path = Combine(NativeModsPath, "NeoModLoader_memload.dll");
         }
-
         NMLModPath = nml_mod_path;
     }
-
     /// <summary>
     /// Path to game root folder
     /// </summary>
     public static string GamePath => Application.platform switch
     {
         RuntimePlatform.WindowsPlayer => Combine(StreamingAssetsPath, "..", ".."),
+        RuntimePlatform.Android => AndroidHelper.GetPath(),
         RuntimePlatform.LinuxPlayer   => Combine(StreamingAssetsPath, "..", ".."),
         RuntimePlatform.OSXPlayer     => Combine(StreamingAssetsPath, "..", "..", "..", "..", ".."),
         _                             => Combine(StreamingAssetsPath, "..", "..")

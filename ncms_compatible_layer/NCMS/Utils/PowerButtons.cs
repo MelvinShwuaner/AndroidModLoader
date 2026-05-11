@@ -1,9 +1,12 @@
-﻿using NeoModLoader.General;
+﻿using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.General;
+using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils
 {
@@ -14,6 +17,13 @@ namespace NCMS.Utils
 
         public static Dictionary<string, PowerButton> CustomButtons = new Dictionary<string, PowerButton>();
         public static Dictionary<string, bool> ToggleValues = new();
+        
+        public static PowerButton CreateButton(string name, Sprite sprite, string title, string description,
+            Vector2 position, ButtonType type = ButtonType.Click,
+            Transform parent = null, Action call = null)
+        {
+           return CreateButton(name, sprite, title, description, position, type, parent, C<UnityAction>(call));
+        }
 
         /// <remarks>
         ///     From [NCMS](https://denq04.github.io/ncms/)
@@ -94,7 +104,7 @@ namespace NCMS.Utils
             Transform parent = null, UnityAction callback = null)
         {
             // Since this will be removed, it's not necessary to move it into APrefab
-            GameObject button_obj = new GameObject(name, typeof(Image), typeof(Button));
+            GameObject button_obj = CreateGameObject(name, typeof(Image), typeof(Button));
             if (parent != null) button_obj.transform.SetParent(parent);
             button_obj.transform.localScale = Vector3.one;
             button_obj.transform.localPosition = position;
@@ -104,7 +114,7 @@ namespace NCMS.Utils
             button_obj.GetComponent<Image>().SetNativeSize();
             button_obj.GetComponent<Button>().onClick.AddListener(callback);
 
-            GameObject text_obj = new GameObject(name + "_text", typeof(Text), typeof(Outline));
+            GameObject text_obj = CreateGameObject(name + "_text", typeof(Text), typeof(Outline));
             text_obj.transform.SetParent(button_obj.transform);
             text_obj.transform.localScale = Vector3.one;
             text_obj.transform.localPosition = Vector3.zero;

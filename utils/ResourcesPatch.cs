@@ -1,14 +1,20 @@
 using System.Globalization;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api.exceptions;
 using NeoModLoader.constants;
 using NeoModLoader.services;
-using Newtonsoft.Json;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
+#if IL2CPP
+using Sys = Il2CppSystem;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#else
+using Sys = System;
+#endif
 using NeoModLoader.utils.Sounds;
-
 namespace NeoModLoader.utils;
 
 /// <summary>
@@ -48,8 +54,7 @@ public static class ResourcesPatch
         tree = new ResourceTree();
         SpriteAtlas atlas = Resources.FindObjectsOfTypeAll<SpriteAtlas>()
             .FirstOrDefault(x => x.name == "SpriteAtlasUI");
-
-        Sprite[] sprites = new Sprite[atlas.spriteCount];
+        var sprites = new Sprite[atlas.spriteCount].C();
         atlas.GetSprites(sprites);
         foreach (var sprite in sprites)
         {
@@ -101,9 +106,7 @@ public static class ResourcesPatch
 
     private static TextAsset LoadTextAsset(string path)
     {
-        TextAsset textAsset = new TextAsset(File.ReadAllText(path));
-        textAsset.name = Path.GetFileNameWithoutExtension(path);
-        return textAsset;
+        return CreateTextAsset(File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
     }
 
     internal static void LoadResourceFromFolder(string pFolder, AssetLinker Linker)
@@ -133,14 +136,13 @@ public static class ResourcesPatch
         };
         string platform_folder = Path.Combine(pFolder, platform_subfolder_name);
         if (!Directory.Exists(platform_folder)) return;
-
         AssetBundleUtils.LoadFromFolder(platform_folder);
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static void LoadAll_Prefix(ref string path)
     {
@@ -162,34 +164,39 @@ public static class ResourcesPatch
         path = string.Join("/", new_parts);
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
+   [HarmonyPostfix]
+   [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
-    private static Object[] LoadAll_Postfix(Object[] __result, string path,
-        Type systemTypeInstance)
-    {
-        if (tree == null) return __result;
-        ResourceTreeNode node = tree.Find(path);
-        if (node == null) return __result;
-        List<Object> append_list = node.GetAllObjects(systemTypeInstance);
+   #if IL2CPP
+   private static void LoadAll_Postfix(ref Il2CppReferenceArray<Object> __result, string path, Sys.Type systemTypeInstance)
+   #else
+     private static void LoadAll_Postfix(ref Object[] __result, string path, Sys.Type systemTypeInstance)
+   #endif
+   {
+       if (tree == null) return;
 
-        if (append_list.Count == 0) return __result;
+       ResourceTreeNode node = tree.Find(path);
+       if (node == null) return;
 
-        var list = new List<Object>(__result);
+       List<Object> append_list = node.GetAllObjects(systemTypeInstance);
+       if (append_list.Count == 0) return;
 
-        HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
-        list.RemoveAll(x => names.Contains(x.name));
+       var list = new List<Object>(__result);
 
-        list.AddRange(append_list);
-        return list.ToArray();
-    }
+       HashSet<string> names = new HashSet<string>(append_list.Select(x => x.name));
+       list.RemoveAll(x => names.Contains(x.name));
+
+       list.AddRange(append_list);
+
+       __result = list.ToArray();
+   }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static void Load_Prefix(ref string path)
     {
@@ -214,10 +221,10 @@ public static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Type)
+        typeof(string), typeof(Sys.Type)
     })]
     private static Object Load_Postfix(Object __result, string path,
-        Type systemTypeInstance)
+        Sys.Type systemTypeInstance)
     {
         if (tree == null) return __result;
         var new_result = tree.Get(path);
@@ -384,7 +391,7 @@ public static class ResourcesPatch
 
         public ResourceTreeNode parent { get; internal set; }
 
-        public List<Object> GetAllObjects(Type systemTypeInstance)
+        public List<Object> GetAllObjects(Sys.Type systemTypeInstance)
         {
             var result = new List<Object>(objects.Count);
 

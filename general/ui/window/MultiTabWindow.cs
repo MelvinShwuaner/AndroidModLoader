@@ -1,10 +1,12 @@
+using NeoModLoader.AndroidCompatibilityModule;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.General.UI.Window.Layout;
 using NeoModLoader.utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 namespace NeoModLoader.General.UI.Window;
 
 /// <summary>
@@ -50,7 +52,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         GameObject tab_entries_container =
-            new("TabEntriesContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            CreateGameObject("TabEntriesContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         tab_entries_container.transform.SetParent(auto_layout_window.BackgroundTransform);
         tab_entries_container.transform.SetAsFirstSibling();
         tab_entries_container.transform.localPosition = Vector3.zero;
@@ -66,7 +68,7 @@ public abstract class MultiTabWindow<T> : AutoLayoutWindow<T> where T : MultiTab
         tab_entries_container_layout.childScaleWidth = false;
         tab_entries_container_layout.spacing = 208;
 
-        GameObject left_container = new("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
+        GameObject left_container = CreateGameObject("LeftContainer", typeof(RectTransform), typeof(VerticalLayoutGroup),
                                         typeof(Mask), typeof(Image));
         left_container.transform.SetParent(tab_entries_container.transform);
         left_container.transform.localScale = Vector3.one;

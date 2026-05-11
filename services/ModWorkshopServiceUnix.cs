@@ -1,4 +1,6 @@
 extern alias unixsteamwork;
+using unixsteamwork::Steamworks;
+using unixsteamwork::Steamworks.Ugc;
 using System.Reflection;
 using NeoModLoader.api;
 using NeoModLoader.constants;
@@ -6,13 +8,11 @@ using NeoModLoader.ui;
 using NeoModLoader.utils;
 using RSG;
 using UnityEngine;
-using unixsteamwork::Steamworks;
-using unixsteamwork::Steamworks.Ugc;
 
 namespace NeoModLoader.services;
 
 extern alias unixsteamwork;
-
+//no workshop on mobile
 internal class ModWorkshopServiceUnix : IPlatformSpecificModWorkshopService
 {
     static List<unixsteamwork::Steamworks.Ugc.Item> subscribedItems = new();

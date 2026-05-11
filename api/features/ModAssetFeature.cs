@@ -1,3 +1,6 @@
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.utils;
+
 namespace NeoModLoader.api.features;
 
 /// <summary>

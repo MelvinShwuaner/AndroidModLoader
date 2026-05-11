@@ -1,3 +1,4 @@
+
 using System.Reflection;
 using NeoModLoader.api;
 using NeoModLoader.api.attributes;
@@ -18,6 +19,11 @@ internal static class ModWorkshopService
 
     public static void Init()
     {
+        if (Config.isAndroid)
+        {
+            workshopServiceBackend = new ModWorkshopServiceMobile();
+            return;
+        }
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
         if (Application.platform == RuntimePlatform.WindowsPlayer)
         {

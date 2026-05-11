@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
+using NeoModLoader.AndroidCompatibilityModule;
+using NeoModLoader.utils;
+
 namespace NeoModLoader.api;
 
 /// <summary>
@@ -128,7 +131,6 @@ public class ModFeatureManager<TMod> : IModFeatureManager where TMod : BasicMod<
         {
             ModFeature = modFeature;
         }
-        [CanBeNull]
         internal static FeatureLoadPathNode CreateFeatureLoadPath(FeatureTreeNode[] featureTrees)
         {
             FeatureTreeNode rootTreeNode = new FeatureTreeNode(new PlaceholderRootModFeature());

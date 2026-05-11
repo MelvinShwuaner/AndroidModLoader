@@ -1,12 +1,14 @@
 using System.Reflection.Emit;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
+using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.Events;
+using static NeoModLoader.AndroidCompatibilityModule.Converter;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-
 namespace NeoModLoader.General.UI.Tab;
 
 public static class TabManager
@@ -27,7 +29,7 @@ public static class TabManager
         "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs");
 
     private static readonly List<Button>
-        tab_entries = new(PowerTabController.instance._buttons); // To avoid other mods' modifies
+        tab_entries = new (PowerTabController.instance._buttons.C()); // To avoid other mods' modifies
 
     private static readonly List<string> tab_names = new();
     private static readonly HashSet<string> tab_names_set = new();
@@ -48,7 +50,7 @@ public static class TabManager
 
     internal static void _init()
     {
-        Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
+        HarmonyLib.Harmony.CreateAndPatchAll(typeof(TabManager), Others.harmony_id);
         var _tab_names = PowerTabNames.GetNames();
         for (int i = 1; i < _tab_names.Count; i++)
         {
@@ -219,7 +221,7 @@ public static class TabManager
             id = name,
             locale_key = pTitleKey,
             tab_type_main = true,
-            get_power_tab = () => tab
+            get_power_tab =  C<PowerTabGetter>(() => tab)
         };
         AssetManager.power_tab_library.add(asset);
         tab._asset = asset;

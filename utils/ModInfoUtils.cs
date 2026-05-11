@@ -1,4 +1,7 @@
+#if !IL2CPP
 extern alias unixsteamwork;
+using unixsteamwork::Steamworks;
+#endif
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -12,8 +15,6 @@ using NeoModLoader.ui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
-using unixsteamwork::Steamworks;
-
 namespace NeoModLoader.utils;
 
 internal static class ModInfoUtils
@@ -185,7 +186,7 @@ internal static class ModInfoUtils
         }
 
         string[] workshop_mod_folders;
-        if (Others.is_editor)
+        if (Others.is_editor || Config.isAndroid)
         {
             goto SKIP_WORKSHOP;
         }
@@ -351,7 +352,7 @@ internal static class ModInfoUtils
         }
 
         File.Delete(download_path);
-
+       
         switch (Application.platform)
         {
             case RuntimePlatform.LinuxPlayer:
@@ -399,7 +400,6 @@ internal static class ModInfoUtils
             default:
                 break;
         }
-
         LogService.LogInfo($"Install BepInEx to {Paths.GamePath}");
     }
 

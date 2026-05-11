@@ -1,17 +1,21 @@
+using System.IO.Compression;
 using System.Reflection;
 using System.Text;
+using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using ModDeclaration;
 using NCMS;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
 using NeoModLoader.ncms_compatible_layer;
 using NeoModLoader.utils;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace NeoModLoader.services;
 
@@ -48,7 +52,7 @@ public static class ModCompileLoadService
         List<MetadataReference> list = pDefaultInc.ToList();
         list.AddRange(pAddInc.Select(inc => MetadataReference.CreateFromFile(inc)));
         LoadAddInc();
-        if (pModDecl.UsePublicizedAssembly)
+        if (pModDecl.UsePublicizedAssembly && !Config.isAndroid)
         {
             list.Add(_publicized_assembly_ref);
         }
@@ -66,7 +70,6 @@ public static class ModCompileLoadService
         {
             list.Add(pModInc[option_depen]);
             preprocessor_symbols.Add(ModDependencyUtils.ParseDepenNameToPreprocessSymbol(option_depen));
-
             if (pModInc[option_depen] != null) continue;
             LogService.LogError($"{pModDecl.UID}'s optional ref of {option_depen} instance is null");
             return false;
@@ -81,6 +84,10 @@ public static class ModCompileLoadService
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;
+        if (Config.isAndroid)
+        {
+            preprocessor_symbols.Add("IL2CPP");
+        }
         var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
 
         foreach (var code_file in code_files)
@@ -141,7 +148,7 @@ public static class ModCompileLoadService
             foreach (var inc in pAddInc)
             {
                 string file_name = Path.GetFileName(inc);
-                if (file_name == "Assembly-CSharp.dll")
+                if (file_name == "Assembly-CSharp.dll" && !Config.isAndroid)
                 {
                     continue;
                 }
@@ -284,7 +291,6 @@ public static class ModCompileLoadService
 
         LM.ApplyLocale(pUpdateTexts);
     }
-
     /// <summary>
     /// Prepare references for mod nodes
     /// </summary>
@@ -298,8 +304,13 @@ public static class ModCompileLoadService
         }
 
         var default_ref_path_list = new List<string>();
-        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
         default_ref_path_list.AddRange(Directory.GetFiles(Paths.NMLAssembliesPath, "*.dll"));
+        if (Config.isAndroid)
+        {
+            default_ref_path_list.AddRange(Directory.GetFiles(Paths.MelonAssemblies, "*.dll"));
+            default_ref_path_list.AddRange(Directory.GetFiles(Paths.Il2CppAssemblies, "*.dll"));
+        }
+        default_ref_path_list.AddRange(Directory.GetFiles(Paths.ManagedPath, "*.dll"));
         default_ref_path_list.Add(Paths.NMLModPath);
         _default_ref_path = default_ref_path_list.ToArray();
 
@@ -316,7 +327,6 @@ public static class ModCompileLoadService
                 LogService.LogError($"Error when load default reference {_default_ref_path[i]}: {e.Message}");
             }
         }
-
         _publicized_assembly_ref = MetadataReference.CreateFromFile(Paths.PublicizedAssemblyPath);
     }
 
@@ -490,15 +500,14 @@ public static class ModCompileLoadService
         bool all_success = true;
         foreach (var mod_assembly in mod_assemblies)
         {
+            MelonLoader.RegisterTypeInIl2Cpp.RegisterAssembly(mod_assembly);
             GameObject mod_instance;
             bool any_loaded = false;
             foreach (var type in mod_assembly.GetTypes())
             {
                 var mod_entry = Attribute.GetCustomAttribute(type, typeof(ModEntry));
-                if (!type.IsSubclassOf(typeof(MonoBehaviour)) ||
+                if (!type.IsSubclassOf(typeof(WrappedBehaviour)) ||
                     (type.GetInterface(nameof(IMod)) == null && mod_entry == null) || type.IsAbstract) continue;
-
-
                 mod_instance = new GameObject(pMod.Name)
                 {
                     transform =
@@ -520,22 +529,22 @@ public static class ModCompileLoadService
                 IMod mod_interface = null;
                 try
                 {
-                    MonoBehaviour main_component = null;
+                    object main_component;
                     if (type.GetInterface(nameof(IMod)) == null)
                     {
                         mod_interface = mod_instance.AddComponent<AttachedModComponent>();
-                        main_component = (MonoBehaviour)mod_instance.AddComponent(type);
+                        main_component = mod_instance.AddComponent(type);
                     }
                     else
                     {
                         mod_interface = (IMod)mod_instance.AddComponent(type);
-                        main_component = (MonoBehaviour)mod_interface;
+                        main_component = (WrappedBehaviour)mod_interface;
                     }
                     LoadLocales(main_component, pMod, false);
 
                     mod_interface.OnLoad(pMod, mod_instance);
                     mod_instance.SetActive(true);
-                    WorldBoxMod.LoadedMods.Add(mod_instance.GetComponent<IMod>());
+                    WorldBoxMod.LoadedMods.Add(mod_instance.GetWrappedComponent<IMod>());
                     any_loaded = true;
                     break;
                 }
@@ -562,11 +571,11 @@ public static class ModCompileLoadService
         {
                 WorldBoxMod.AllRecognizedMods[pMod] = ModState.LOADED;
                 ModDepenSolveService.MarkModLoaded(pMod);
-            }
+        }
         else
-            {
+        {
             pMod.FailReason.AppendLine("All mod assemblies failed to load.");
-                ModInfoUtils.clearModCompileTimestamp(pMod.UID);
+            ModInfoUtils.clearModCompileTimestamp(pMod.UID);
         }
     }
 
@@ -679,7 +688,6 @@ public static class ModCompileLoadService
         ResourcesPatch.LoadAssetBundlesFromFolder(Path.Combine(pModDeclare.FolderPath, Paths.ModAssetBundleFolderName));
 
         LoadMod(pModDeclare);
-     
         linker.AddAssets();
 
         if (IsModLoaded(pModDeclare.UID))
@@ -738,7 +746,7 @@ public static class ModCompileLoadService
             ModInfoUtils.DealWithBepInExModLinkRequests();
             return false;
         }
-
+        
         ModEnablePlan plan = ModDepenSolveService.BuildRuntimeEnablePlan(mod_declare);
         if (plan.HasFailure)
         {

@@ -58,13 +58,12 @@ public static class ModReloadService
     /// </summary>
     public static bool ReloadResources(IMod pMod)
     {
-        AssetLinker linker = new();
+        AssetLinker Linker = new();
         ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.ModResourceFolderName), linker);
-        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath,
-            Paths.NCMSAdditionModResourceFolderName), linker);
-    
-        linker.AddAssets();
+            Paths.ModResourceFolderName), Linker);
+        ResourcesPatch.LoadResourceFromFolder(Path.Combine(pMod.GetDeclaration().FolderPath, 
+            Paths.NCMSAdditionModResourceFolderName), Linker);
+        Linker.AddAssets();
         return true;
     }
 

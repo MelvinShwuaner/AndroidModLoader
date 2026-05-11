@@ -136,7 +136,7 @@ internal static class ReflectionHelper
             instance, parameter).Compile();
     }
 
-    private static Delegate createMethodDelegate(MethodInfo method_info)
+    internal static Delegate createMethodDelegate(this MethodInfo method_info)
     {
         List<ParameterExpression> paramExpressions = method_info.GetParameters()
             .Select((p, i) => Expression.Parameter(p.ParameterType, p.Name)).ToList();
@@ -152,8 +152,7 @@ internal static class ReflectionHelper
             callExpression = Expression.Call(instanceExpression, method_info, paramExpressions);
             paramExpressions.Insert(0, instanceExpression);
         }
-
-        LambdaExpression lambdaExpression = Expression.Lambda(callExpression, paramExpressions);
+        var lambdaExpression = Expression.Lambda(callExpression, paramExpressions);
         return lambdaExpression.Compile();
     }
 }

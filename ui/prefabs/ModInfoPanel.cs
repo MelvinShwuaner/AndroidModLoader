@@ -1,5 +1,7 @@
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.api;
 using NeoModLoader.General.UI.Prefabs;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,14 +15,14 @@ public class ModInfoPanel : APrefab<ModInfoPanel>
     public ModDeclare ModDeclaration { get; private set; }
     public static void BaseDecorate(ModInfoPanel pPanel)
     {
-        var icon = new GameObject("Icon", typeof(Image));
+        var icon = CreateGameObject("Icon", typeof(Image));
         icon.transform.SetParent(pPanel.transform);
         icon.transform.localPosition = new Vector3(28, -28);
         icon.transform.localScale = Vector3.one;
         icon.GetComponent<RectTransform>().sizeDelta = new Vector2(48, 48);
         icon.GetComponent<Image>().sprite = pPanel.ModDeclaration.GetIcon();
 
-        var mod_name = new GameObject("ModName", typeof(Text));
+        var mod_name = CreateGameObject("ModName", typeof(Text));
         mod_name.transform.SetParent(pPanel.transform);
         mod_name.transform.localPosition = new Vector3(54, -24, 0);
         mod_name.transform.localScale = Vector3.one;
@@ -34,7 +36,7 @@ public class ModInfoPanel : APrefab<ModInfoPanel>
         mod_name_text.supportRichText = true;
 
         
-        var mod_author = new GameObject("ModAuthor", typeof(Text));
+        var mod_author = CreateGameObject("ModAuthor", typeof(Text));
         mod_author.transform.SetParent(pPanel.transform);
         mod_author.transform.localPosition = new Vector3(54, -45, 0);
         mod_author.transform.localScale = Vector3.one;
@@ -48,7 +50,7 @@ public class ModInfoPanel : APrefab<ModInfoPanel>
         mod_name_text.supportRichText = true;
 
 
-        var mod_desc = new GameObject("ModDesc", typeof(Text));
+        var mod_desc = CreateGameObject("ModDesc", typeof(Text));
         mod_desc.transform.SetParent(pPanel.transform);
         mod_desc.transform.localPosition = new Vector3(8, -54, 0);
         mod_desc.transform.localScale = Vector3.one;
@@ -86,7 +88,7 @@ public class ModInfoPanel : APrefab<ModInfoPanel>
 
     private static void _init()
     {
-        var obj = new GameObject("ModInfoPanel", typeof(RectTransform));
+        var obj = CreateGameObject("ModInfoPanel", typeof(RectTransform));
         obj.GetComponent<RectTransform>().pivot = new(0, 1);
         obj.GetComponent<RectTransform>().sizeDelta = new(350, 200);
 

@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection;
 using HarmonyLib;
 using NeoModLoader.utils.instpredictors;
@@ -85,5 +88,195 @@ public static class HarmonyUtils
     internal static void _init()
     {
         BaseInstPredictor._init();
+    }
+
+    public static void Add(this List<CodeInstruction> list, OpCode opcode, object operand = null)
+    {
+        list.Add(new CodeInstruction(opcode, operand));
+    }
+    /// <summary>
+    /// Emits an instruction depending on the type of the operand
+    /// </summary>
+    public static void Emit(this ILGenerator il, OpCode opcode, object operand)
+    {
+        switch (operand)
+        {
+            case null:
+                il.Emit(opcode);
+                break;
+            case int i:
+                il.Emit(opcode, i);
+                break;
+            case long l:
+                il.Emit(opcode, l);
+                break;
+            case float f:
+                il.Emit(opcode, f);
+                break;
+            case double d:
+                il.Emit(opcode, d);
+                break;
+            case string s:
+                il.Emit(opcode, s);
+                break;
+            case byte b:
+                il.Emit(opcode, b);
+                break;
+            case sbyte sb:
+                il.Emit(opcode, sb);
+                break;
+            case MethodInfo m:
+                il.Emit(opcode, m);
+                break;
+            case ConstructorInfo c:
+                il.Emit(opcode, c);
+                break;
+            case FieldInfo fi:
+                il.Emit(opcode, fi);
+                break;
+            case Type t:
+                il.Emit(opcode, t);
+                break;
+            case Label lbl:
+                il.Emit(opcode, lbl);
+                break;
+            case Label[] lbls:
+                il.Emit(opcode, lbls);
+                break;
+            case LocalBuilder local:
+                il.Emit(opcode, local);
+                break;
+            case SignatureHelper sig:
+                il.Emit(opcode, sig);
+                break;
+            default:
+                throw new NotSupportedException($"Unsupported operand type: {operand.GetType()}");
+        }
+    }
+    /// <summary>
+    /// Invokes a Prefix method. returns a object if the prefix replaces, returns null if not
+    /// </summary>
+    /// <param name="Prefix">the prefix</param>
+    /// <param name="args">the arguments, including __instance. __result is SEPERATE</param>
+    /// <param name="Replaced">returns if the prefix returns false or not</param>
+    /// <returns></returns>
+    public static object InvokePrefix(MethodInfo Prefix, ref object[] args, out bool Replaced)
+    {
+        Replaced = false;
+        object __result = null;
+
+        var parameters = Prefix.GetParameters();
+        var invokeArgs = new object[parameters.Length];
+        int argsIndex = 0; 
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            var param = parameters[i];
+
+            if (param.Name == "__result")
+            {
+                invokeArgs[i] = null;
+            }
+            else
+            {
+                invokeArgs[i] = argsIndex < args.Length ? args[argsIndex] : null;
+                argsIndex++;
+            }
+        }
+
+        object invokeResult = Prefix.Invoke(null, invokeArgs);
+        
+        argsIndex = 0;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            var param = parameters[i];
+
+            if (param.Name == "__result")
+            {
+                if (param.ParameterType.IsByRef)
+                    __result = invokeArgs[i];
+            }
+            else
+            {
+                if (param.ParameterType.IsByRef && argsIndex < args.Length)
+                    args[argsIndex] = invokeArgs[i];
+                argsIndex++;
+            }
+        }
+        if (Prefix.ReturnType == typeof(bool) && invokeResult is bool continueExecution)
+        {
+            Replaced = !continueExecution;
+        }
+        return __result;
+    }
+    /// <summary>
+    /// Invokes a Transpiler method. returns the outputed instructions
+    /// </summary>
+    /// <param name="Transpiler">the transpiler</param>
+    /// <param name="instructions">the original instructions</param>
+    /// <param name="generator">the IL generator</param>
+    /// <param name="original">the original method, that this transpiler is patching</param>
+    /// <returns></returns>
+    public static IEnumerable<CodeInstruction> InvokeTranspiler(MethodInfo Transpiler, IEnumerable<CodeInstruction> instructions, ILGenerator generator = null, MethodBase original = null)
+    {
+        var transpilerParams = Transpiler.GetParameters();
+        var args = transpilerParams.Select(object (p) =>
+        {
+            if (p.ParameterType == typeof(IEnumerable<CodeInstruction>))
+                return instructions;
+            if (p.ParameterType == typeof(ILGenerator))
+                return generator;
+            return p.ParameterType == typeof(MethodBase) ? original : null;
+        }).ToArray();
+        return (IEnumerable<CodeInstruction>)Transpiler.Invoke(null, args);
+    }
+    
+    public static int GetPriority(this MethodInfo Method)
+    {
+        var priority = Method.GetCustomAttribute<HarmonyPriority>() ?? Method.DeclaringType?.GetCustomAttribute<HarmonyPriority>();
+        return priority == null ? Priority.Normal : priority.info.priority;
+    }
+    public static int GetSize(this CodeInstruction instr)
+    {
+        int size = instr.opcode.Size; // opcode itself
+        switch (instr.opcode.OperandType)
+        {
+            case OperandType.InlineNone:
+                break;
+
+            case OperandType.ShortInlineBrTarget:
+            case OperandType.ShortInlineI:
+            case OperandType.ShortInlineVar:
+                size += 1;
+                break;
+
+            case OperandType.InlineVar:
+                size += 2;
+                break;
+
+            case OperandType.InlineI:
+            case OperandType.InlineBrTarget:
+            case OperandType.InlineField:
+            case OperandType.InlineMethod:
+            case OperandType.InlineSig:
+            case OperandType.InlineString:
+            case OperandType.InlineTok:
+            case OperandType.InlineType:
+            case OperandType.ShortInlineR:
+                size += 4;
+                break;
+
+            case OperandType.InlineI8:
+            case OperandType.InlineR:
+                size += 8;
+                break;
+
+            case OperandType.InlineSwitch:
+                var labels = (Label[])instr.operand;
+                size += 4 + (labels.Length * 4);
+                break;
+        }
+
+        return size;
     }
 }
