@@ -197,6 +197,21 @@ public static class LogService
         }
     }
     /// <summary>
+    /// Log message without [NML] prefix
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Log(string message)
+    {
+        if (Others.unity_player_enabled)
+        {
+            UnityEngine.Debug.Log(message);
+        }
+        else
+        {
+            System.Console.WriteLine(message);
+        }
+    }
+    /// <summary>
     /// Log StackTrace from where call this method with [NML] prefix as Info
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
