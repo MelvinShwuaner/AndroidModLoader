@@ -651,7 +651,7 @@ public class PCInputSystem : WrappedBehaviour
             {
                 CurrentMode = Mode.Editing;
             }
-            if (GUI.Button(MouseButton, $"Mouse Mode"))
+            if (GUI.Button(MouseButton, "Mouse Mode"))
             {
                 CurrentMode = Mode.Mouse;
             }

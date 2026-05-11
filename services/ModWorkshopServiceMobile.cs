@@ -3,7 +3,7 @@ using RSG;
 
 namespace NeoModLoader.services;
 
-public class MobileWorkShopService : IPlatformSpecificModWorkshopService 
+public class ModWorkshopServiceMobile : IPlatformSpecificModWorkshopService 
 {
     public void UploadModLoader(string changelog)
     {

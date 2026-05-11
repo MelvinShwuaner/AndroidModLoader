@@ -186,7 +186,6 @@ namespace NeoModLoader.AndroidCompatibilityModule
 		static WrappedAction CreateWrappedAction(MethodInfo method)
 		{
 			var param = Expression.Parameter(typeof(WrappedBehaviour), "instance");
-
 			var call = Expression.Call(
 				Expression.Convert(param, method.DeclaringType),
 				method

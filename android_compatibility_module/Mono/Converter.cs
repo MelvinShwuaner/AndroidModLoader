@@ -13,8 +13,4 @@ public static class Converter
      {
          return (D)func;
      }
-    public static IEnumerator C(this IEnumerator enumerator)
-    {
-        return enumerator;
-    }
 }

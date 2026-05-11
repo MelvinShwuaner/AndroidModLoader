@@ -17,6 +17,10 @@ public static class Extentions
     {
         return manager._container._hashSet;
     }
+    public static HashSet<A> Get<A, B>(this MetaSystemManager<A, B> manager) where A : MetaObject<B>, new() where B : MetaObjectData, new()
+    {
+        return manager._hashset;
+    }
     public static void AddListener(this UnityEvent ev, Action action)
     {
         ev.AddListener(() => action());

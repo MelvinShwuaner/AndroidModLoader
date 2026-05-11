@@ -16,6 +16,6 @@ class SteamClient //an IQ too high?????
 }
 namespace NeoModLoader.services
 {
-    public class ModWorkshopServiceWindows : MobileWorkShopService{}
-    public class ModWorkshopServiceUnix : MobileWorkShopService{}
+    public class ModWorkshopServiceWindows : ModWorkshopServiceMobile;
+    public class ModWorkshopServiceUnix : ModWorkshopServiceMobile;
 }

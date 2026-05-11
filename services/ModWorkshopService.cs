@@ -21,7 +21,7 @@ internal static class ModWorkshopService
     {
         if (Config.isAndroid)
         {
-            workshopServiceBackend = new MobileWorkShopService();
+            workshopServiceBackend = new ModWorkshopServiceMobile();
             return;
         }
         steamWorkshopPromise = RF.GetStaticField<Promise, SteamSDK>("steamInitialized");
