@@ -205,7 +205,7 @@ public static class LogService
     {
         if (Others.unity_player_enabled)
         {
-            UnityEngine.Debug.Log(message);
+            AndroidHelper.Log(message);
         }
         else
         {

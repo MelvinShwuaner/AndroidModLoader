@@ -67,7 +67,7 @@ public static class DebugService
     {
         static void prefix(MethodBase __originalMethod)
         {
-            LogService.Log(__originalMethod.ToString());
+            LogService.Log(__originalMethod.Name + " from " + __originalMethod.DeclaringType?.Name);
         }
         public LogDebugger()
         {
@@ -86,7 +86,7 @@ public static class DebugService
             long __state)
         {
             LogService.Log(
-                $"{__originalMethod.Name} took {Stopwatch.GetTimestamp() - __state}");
+                $"{__originalMethod.Name} from {__originalMethod.DeclaringType?.Name} took {Stopwatch.GetTimestamp() - __state}");
         }
         public ProfilerDebugger()
         {
@@ -116,6 +116,6 @@ public static class DebugService
     public static readonly LogDebugger Logger = new();
     public static readonly ProfilerDebugger Profiler = new();
     public static readonly ExceptionDebugger ExceptionHandler = new();
-    static readonly Func<MethodBase, bool> Default = _ => true;
-    static readonly Func<MethodBase, bool> Attribute = method => method.IsDefined(typeof(DebugAttribute), true) || method.DeclaringType?.IsDefined(typeof(DebugAttribute), true) == true;
+    public static readonly Func<MethodBase, bool> Default = _ => true;
+    public static readonly Func<MethodBase, bool> Attribute = method => method.IsDefined(typeof(DebugAttribute), true) || method.DeclaringType?.IsDefined(typeof(DebugAttribute), true) == true;
 }
