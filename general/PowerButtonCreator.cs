@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
-using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.services;
 using UnityEngine;
 using UnityEngine.Events;

@@ -1,8 +1,8 @@
 using System.Reflection;
 using UnityEngine;
-using NeoModLoader.AndroidCompatibilityModule;
-using NeoModLoader.services;
 
+using NeoModLoader.services;
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.constants;
 
 /// <summary>

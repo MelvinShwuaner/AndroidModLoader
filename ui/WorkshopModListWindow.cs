@@ -1,5 +1,5 @@
 
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.api;
 using NeoModLoader.services;
 using NeoModLoader.utils;

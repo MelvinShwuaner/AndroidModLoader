@@ -1,4 +1,4 @@
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.api;
 using NeoModLoader.General;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;

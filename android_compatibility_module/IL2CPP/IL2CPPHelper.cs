@@ -1,3 +1,4 @@
+using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -61,6 +62,10 @@ public static class IL2CPPHelper
     public static Il2CppStringArray C(this string[] arr)
     {
         return arr;
+    }
+    public static D C<D>(Delegate func) where D : Il2CppSystem.Delegate
+    {
+        return DelegateSupport.ConvertDelegate<D>(func);
     }
     public static Sys.Nullable<A> N<A>(this A a) where A : new()
     {

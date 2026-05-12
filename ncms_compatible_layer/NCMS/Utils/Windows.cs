@@ -1,6 +1,6 @@
-﻿using NeoModLoader.AndroidCompatibilityModule;
+﻿
 using NeoModLoader.General;
-using NeoModLoader.utils;
+using NeoModLoader.AndroidCompatibilityModule;
 
 #pragma warning disable CS1591 // No comment for NCMS compatible layer
 namespace NCMS.Utils

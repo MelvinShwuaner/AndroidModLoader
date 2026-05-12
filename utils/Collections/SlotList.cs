@@ -1,5 +1,4 @@
 using System.Collections;
-using NeoModLoader.AndroidCompatibilityModule;
 
 namespace NeoModLoader.utils.Collections;
 

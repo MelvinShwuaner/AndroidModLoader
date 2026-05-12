@@ -1,6 +1,6 @@
 using System.Collections;
-using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using NeoModLoader.api;
 using NeoModLoader.constants;

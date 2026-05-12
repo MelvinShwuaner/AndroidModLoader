@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace NeoModLoader.AndroidCompatibilityModule;
 
 public static class Extentions
 {

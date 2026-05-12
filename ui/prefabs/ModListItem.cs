@@ -1,9 +1,9 @@
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.General.UI.Prefabs;
 using NeoModLoader.utils;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.Events;

@@ -1,10 +1,10 @@
 using System.Reflection;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.utils;
 using UnityEngine;
 
 namespace NeoModLoader.General.UI.Prefabs;
-
+using AndroidCompatibilityModule;
 /// <summary>
 /// Abstract class for prefabs. If you implement 'void _init(void)', it will be called when the prefab is used for the first time. Otherwise, you need to initialize the prefab manually.
 /// </summary>

@@ -1,5 +1,5 @@
 using System.Text;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.General;
 using NeoModLoader.ui;
 using NeoModLoader.utils;
@@ -7,7 +7,7 @@ using NeoModLoader.utils.authentication;
 using RSG;
 
 namespace NeoModLoader.services;
-
+using NeoModLoader.AndroidCompatibilityModule;
 /// <summary>
 ///     Authentication service for mod upload.
 /// </summary>

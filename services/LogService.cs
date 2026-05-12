@@ -2,11 +2,11 @@
 
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.constants;
 using NeoModLoader.utils;
 using UnityEngine;
-
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.services;
 /// <summary>
 /// It is a service to log message to console or Unity Console
@@ -147,7 +147,7 @@ public static class LogService
     }
     public static void LogException(Exception exception) {
         if (Others.unity_player_enabled) {
-            UnityEngine.Debug.LogException(Converter.C(exception));
+            UnityEngine.Debug.LogException(exception.C());
         } else {
             System.Console.WriteLine(exception);
         }

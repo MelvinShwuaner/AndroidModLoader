@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using ModDeclaration;
 using NCMS;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.api;
 using NeoModLoader.constants;
 using NeoModLoader.General;
@@ -18,7 +18,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace NeoModLoader.services;
-
+using NeoModLoader.AndroidCompatibilityModule;
 /// <summary>
 /// Service of mod compiling and loading. 
 /// </summary>

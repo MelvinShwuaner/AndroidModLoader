@@ -1,11 +1,11 @@
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.api;
 using NeoModLoader.General;
 using NeoModLoader.services;
 using NeoModLoader.utils;
 using NeoModLoader.utils.authentication;
 using UnityEngine;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine.Events;
 using UnityEngine.UI;

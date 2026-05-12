@@ -3,7 +3,7 @@ using NeoModLoader.constants;
 using NeoModLoader.services;
 using Newtonsoft.Json;
 using UnityEngine;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using Vector2 = UnityEngine.Vector2;
 using Vector = System.Numerics.Vector2;
 namespace NeoModLoader.AndroidCompatibilityModule.PCInputSystem;

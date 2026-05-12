@@ -69,5 +69,5 @@ public static class GUIHelper
 
 public static class ActionHelper
 {
-    public static readonly WorldAction Default = Converter.C<WorldAction>((BaseSimObject _, WorldTile _) => true);
+    public static readonly WorldAction Default = IL2CPPHelper.C<WorldAction>((BaseSimObject _, WorldTile _) => true);
 }

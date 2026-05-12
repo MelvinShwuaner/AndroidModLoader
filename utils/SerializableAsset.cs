@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using NeoModLoader.AndroidCompatibilityModule;
-
 namespace NeoModLoader.utils
 {
     /// <summary>

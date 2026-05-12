@@ -1,5 +1,5 @@
-using NeoModLoader.AndroidCompatibilityModule;
 
+using NeoModLoader.AndroidCompatibilityModule;
 namespace NeoModLoader.utils.Sounds;
 /// <summary>
 /// an Audio library. multiple can be used

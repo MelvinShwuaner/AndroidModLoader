@@ -1,5 +1,5 @@
 using HarmonyLib;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.constants;
 using NeoModLoader.utils;
 
@@ -41,7 +41,7 @@ internal static class AssetExtensionInternal<TAsset, TLibrary>
         foreach (TAsset asset in pLibrary.list) pAction(asset);
 
         state.action = asset => { pAction(asset); };
-        state.done.UnionWith(pLibrary.list.C().Select(x => x.id));
+        state.done.UnionWith(pLibrary.list.Select((TAsset x) => x.id));
 
         if (!_states.ContainsKey(pLibrary)) _states.Add(pLibrary, new List<LibraryState>());
         _states[pLibrary].Add(state);

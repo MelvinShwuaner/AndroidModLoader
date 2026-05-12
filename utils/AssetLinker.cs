@@ -1,9 +1,8 @@
-﻿using HarmonyLib;
+﻿using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.services;
 using Newtonsoft.Json;
 using System.Reflection;
-using NeoModLoader.AndroidCompatibilityModule;
-using static NeoModLoader.AndroidCompatibilityModule.Converter;
+using HarmonyLib;
 using UnityEngine;
 namespace NeoModLoader.utils
 {
@@ -174,7 +173,7 @@ namespace NeoModLoader.utils
                 Achievement pAchievement = AssetManager.achievements.get(Asset.achievement_id);
                 if (pAchievement.unlock_assets == null)
                 {
-                    pAchievement.unlock_assets = new List<BaseUnlockableAsset>().C();
+                    pAchievement.unlock_assets = new();
                     pAchievement.unlocks_something = true;
                 }
                 pAchievement.unlock_assets.Add(Asset);
@@ -509,16 +508,16 @@ namespace NeoModLoader.utils
         {
             foreach (ActorAsset tActorAsset in AssetManager.actor_library.list)
             {
-                List<string> traits = Library.getDefaultTraitsForMeta(tActorAsset).C();
+                var traits = Library.getDefaultTraitsForMeta(tActorAsset);
                 if (traits != null && traits.Contains(Asset.id))
                 {
-                    Asset.default_for_actor_assets ??= new List<ActorAsset>().C();
+                    Asset.default_for_actor_assets ??= new();
                     Asset.default_for_actor_assets.Add(tActorAsset);
                 }
             }
             if (Asset.opposite_list != null && Asset.opposite_list.Count > 0)
             {
-                Asset.opposite_traits = new HashSet<A>(Asset.opposite_list.Count).C();
+                Asset.opposite_traits = new(Asset.opposite_list.Count);
                 foreach (string tID in Asset.opposite_list)
                 {
                     A tOppositeTrait = Library.get(tID);
@@ -626,10 +625,10 @@ namespace NeoModLoader.utils
                 Asset.has_get_map_icon_color = true;
             }
             BuildingAsset buildingAsset = Asset;
-            HashSet<BiomeTag> biome_tags_growth = Asset.biome_tags_growth.C();
+            var biome_tags_growth = Asset.biome_tags_growth;
             buildingAsset.has_biome_tags = biome_tags_growth != null && biome_tags_growth.Count > 0;
             BuildingAsset buildingAsset2 = Asset;
-            HashSet<BiomeTag> biome_tags_spread = Asset.biome_tags_spread.C();
+            var biome_tags_spread = Asset.biome_tags_spread;
             buildingAsset2.has_biome_tags_spread = biome_tags_spread != null && biome_tags_spread.Count > 0;
         }
         public static void LinkBiomeAsset(Asset asset)
@@ -687,23 +686,23 @@ namespace NeoModLoader.utils
             
             if (hotkeyAsset.default_key_mod_1 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.C().AddToArray(hotkeyAsset.default_key_mod_1);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_1);
             }
             if (hotkeyAsset.default_key_mod_2 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.C().AddToArray(hotkeyAsset.default_key_mod_2);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_2);
             }
             if (hotkeyAsset.default_key_mod_3 != null)
             {
-                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.C().AddToArray(hotkeyAsset.default_key_mod_3);
+                HotkeyLibrary.mod_keys = HotkeyLibrary.mod_keys.AddToArray(hotkeyAsset.default_key_mod_3);
             }
             if (hotkeyAsset.just_pressed_action != null)
             {
-                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.C().AddToArray(hotkeyAsset);
+                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.AddToArray(hotkeyAsset);
             }
             else if (hotkeyAsset.holding_action != null)
             {
-                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.C().AddToArray(hotkeyAsset);
+                AssetManager.hotkey_library.action_hotkeys = AssetManager.hotkey_library.action_hotkeys.AddToArray(hotkeyAsset);
             }
             
         }

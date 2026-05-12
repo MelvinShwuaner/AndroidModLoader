@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using HarmonyLib;
-using NeoModLoader.AndroidCompatibilityModule;
+
 using NeoModLoader.constants;
 namespace NeoModLoader.services;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
@@ -120,6 +120,8 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
 {
     private static readonly FieldInfo containerAttributes = AccessTools.Field(typeof(PatchClassProcessor), "containerAttributes");
     public Dictionary<Type, PatchClassProcessor> Processors = new();
+    
+
     private Harmony harmony;
     public HarmonyPatcher(string ID)
     {
