@@ -12,6 +12,10 @@ public static class Extentions
     {
         return obj.GetComponent<T>();
     }
+    public static A C<A>(this A a)
+    {
+        return a;
+    }
     public static HashSet<A> Get<A, B>(this SimSystemManager<A, B> manager) where A : BaseSimObject, ILoadable<B>, new() where B : BaseObjectData, new()
     {
         return manager._container._hashSet;

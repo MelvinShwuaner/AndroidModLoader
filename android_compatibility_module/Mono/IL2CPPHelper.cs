@@ -4,6 +4,10 @@ namespace NeoModLoader.AndroidCompatibilityModule;
 
 public static class IL2CPPHelper
 {
+    public static D C<D>(Delegate func) where D : System.Delegate
+    {
+        return (D)func;
+    }
     public static GameObject CreateGameObject(string name, params Type[] types)
     {
         return new GameObject(name, types);
