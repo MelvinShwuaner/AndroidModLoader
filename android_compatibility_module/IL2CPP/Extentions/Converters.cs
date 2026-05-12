@@ -87,6 +87,14 @@ public static partial class Extentions
     {
         return arr;
     }
+    public static A[] C<A>(this Il2CppArrayBase<A> arr)
+    {
+        return arr;
+    }
+    public static Il2CppStringArray C(this string[] arr)
+    {
+        return arr;
+    }
     public static Dictionary<key, value> C<key, value>(this Sys.Collections.Generic.Dictionary<key, value> e)
     {
         Dictionary<key, value> dictionary = new Dictionary<key, value>();

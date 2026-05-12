@@ -17,19 +17,10 @@ public static partial class Extentions
     {
         set.UnionWith(other.C());
     }
-    public static A[] C<A>(this Il2CppArrayBase<A> arr)
-    {
-        return arr;
-    }
-    public static Il2CppStringArray C(this string[] arr)
-    {
-        return arr;
-    }
     public static Il2CppSystem.Nullable<A> N<A>(this A a) where A : new()
     {
         return new Il2CppSystem.Nullable<A>(a);
     }
-
     public static bool MoveNext<T>(this Il2CppSystem.Collections.Generic.IEnumerator<T> enumerator)
     {
         return enumerator.Cast<IEnumerator>().MoveNext();
