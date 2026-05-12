@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using HarmonyLib;
+using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
 namespace NeoModLoader.services;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
@@ -9,15 +10,15 @@ public static class DebugService
 {
     static DebugService()
     {
-        Logger = new Debugger<Action<MethodBase, object[]>>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)));
-        ExceptionHandler = new Debugger<Action<MethodBase, Exception>>(null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
-        Profiler = new Debugger<Action<MethodBase, long>>(AccessTools.Method(typeof(Hooks), nameof(Hooks.prefix)), AccessTools.Method(typeof(Hooks), nameof(Hooks.postfix)));
+        Logger = new Debugger<object[]>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)));
+        ExceptionHandler = new Debugger<Exception>(null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
+        Profiler = new Debugger<long>(AccessTools.Method(typeof(Hooks), nameof(Hooks.prefix)), AccessTools.Method(typeof(Hooks), nameof(Hooks.postfix)));
     }
     class Hooks
     {
         public static void loghook(MethodBase __originalMethod, object[] __args)
         {
-           Logger.Handler(__originalMethod, __args);
+            Logger.Handler(__originalMethod, __args);
         }
         public static void prefix(out long __state)
         {
@@ -43,13 +44,13 @@ public static class DebugService
         }
         return true;
     }
-    public class Debugger<T> where T : Delegate
+    public class Debugger<T>
     {
-        public void AddHandler(T handler)
+        public void AddHandler(Action<MethodBase, T>  handler)
         {
-            Handler = (T)Delegate.Combine(Handler, handler);
+            Handler += handler;
         }
-        public T Handler { get; private set; }
+        public Action<MethodBase, T> Handler;
         public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Finalizer = null)
         {
             if (Prefix is not null)
@@ -70,7 +71,7 @@ public static class DebugService
         HarmonyMethod Finalizer;
         public void Attach(Assembly assembly, Func<MethodBase, bool> predicate = null)
         {
-            foreach (var Type in assembly.GetTypes())
+            foreach (var Type in AccessTools.GetTypesFromAssembly(assembly))
             {
                 Attach(Type, predicate);
             }
@@ -110,8 +111,61 @@ public static class DebugService
         }
     }
     static readonly Harmony Patcher = new (Others.harmony_id);
-    public static readonly Debugger<Action<MethodBase, object[]>> Logger;
-    public static readonly Debugger<Action<MethodBase, Exception>> ExceptionHandler;
-    public static readonly Debugger<Action<MethodBase, long>> Profiler;
+    public static readonly Debugger<object[]> Logger;
+    public static readonly Debugger<Exception> ExceptionHandler;
+    public static readonly Debugger<long> Profiler;
     public static readonly Func<MethodBase, bool> DefaultPredicate = method => !method.IsDefined(typeof(DoNotDebug), true) && !method.DeclaringType!.IsDefined(typeof(DoNotDebug), true);
+}
+public class HarmonyPatcher //any harmony patches causing you trouble? this lets you single them out!
+{
+    private static readonly FieldInfo containerAttributes = AccessTools.Field(typeof(PatchClassProcessor), "containerAttributes");
+    public Dictionary<Type, PatchClassProcessor> Processors = new();
+    private Harmony harmony;
+    public HarmonyPatcher(string ID)
+    {
+        harmony = new Harmony(ID);
+    }
+    public HarmonyPatcher(string ID, Assembly assembly)
+    {
+        harmony = new Harmony(ID);
+        Add(assembly);
+    }
+    public void Add(Assembly assembly)
+    {
+        AccessTools.GetTypesFromAssembly(assembly).Do(type => Add(type));
+    }
+    public bool Add(Type type)
+    {
+        var processor = harmony.CreateClassProcessor(type, true);
+        if (containerAttributes.GetValue(processor) is null)
+        {
+            return false;
+        }
+        Processors.Add(type, processor);
+        return true;
+    }
+    public void Patch(Type type)
+    {
+        Processors[type].Patch();
+    }
+    public void PatchAll()
+    {
+        foreach (var processor in Processors.Values)
+        {
+            processor.Patch();
+        }
+        Processors.Clear();
+    }
+    public bool PatchRandom(out Type type)
+    {
+        type = null;
+        if (Processors.Count == 0)
+        {
+            return false;
+        }
+        type = Processors.ToList().GetRandom().Key;
+        Processors.Remove(type);
+        Patch(type);
+        return true;
+    }
 }
