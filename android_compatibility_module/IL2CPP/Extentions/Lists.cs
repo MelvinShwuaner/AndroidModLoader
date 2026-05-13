@@ -104,7 +104,7 @@ public static partial class Extentions
 	{
 		(list[i], list[j]) = (list[j], list[i]);
 	}
-	public static T GetRandom<T>(this List<T> list)
+	public static T GetRandom<T>(this IList<T> list)
 	{
 		return list[rnd.Next(0, list.Count)];
 	}

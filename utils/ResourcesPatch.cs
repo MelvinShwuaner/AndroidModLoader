@@ -1,18 +1,11 @@
 using System.Globalization;
 using HarmonyLib;
 using NeoModLoader.api.exceptions;
-using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.services;
 using static NeoModLoader.AndroidCompatibilityModule.IL2CPPHelper;
 using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
-#if IL2CPP
-using Sys = Il2CppSystem;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-#else
-using Sys = System;
-#endif
 using NeoModLoader.utils.Sounds;
 namespace NeoModLoader.utils;
 
@@ -141,7 +134,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Sys.Type)
+        typeof(string), typeof(System.Type)
     })]
     private static void LoadAll_Prefix(ref string path)
     {
@@ -166,13 +159,9 @@ public static class ResourcesPatch
    [HarmonyPostfix]
    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(Sys.Type)
+        typeof(string), typeof(System.Type)
     })]
-   #if IL2CPP
-   private static void LoadAll_Postfix(ref Il2CppReferenceArray<Object> __result, string path, Sys.Type systemTypeInstance)
-   #else
-     private static void LoadAll_Postfix(ref Object[] __result, string path, Sys.Type systemTypeInstance)
-   #endif
+   private static void LoadAll_Postfix(ref ObjectArray __result, string path, System.Type systemTypeInstance)
    {
        if (tree == null) return;
 
@@ -195,7 +184,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Sys.Type)
+        typeof(string), typeof(System.Type)
     })]
     private static void Load_Prefix(ref string path)
     {
@@ -220,10 +209,10 @@ public static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(Sys.Type)
+        typeof(string), typeof(System.Type)
     })]
     private static Object Load_Postfix(Object __result, string path,
-        Sys.Type systemTypeInstance)
+        System.Type systemTypeInstance)
     {
         if (tree == null) return __result;
         var new_result = tree.Get(path);
@@ -390,7 +379,7 @@ public static class ResourcesPatch
 
         public ResourceTreeNode parent { get; internal set; }
 
-        public List<Object> GetAllObjects(Sys.Type systemTypeInstance)
+        public List<Object> GetAllObjects(System.Type systemTypeInstance)
         {
             var result = new List<Object>(objects.Count);
 

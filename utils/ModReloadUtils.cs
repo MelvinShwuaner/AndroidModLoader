@@ -124,7 +124,7 @@ internal static class ModReloadUtils
 
     private static bool IsHotfixable(MethodDefinition methodDefinition)
     {
-        if (Config.isAndroid)
+        if (Others.IsIL2CPP)
         {
             return false;
         }

@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
-
 using NeoModLoader.constants;
+using NeoModLoader.utils;
+using NeoModLoader.utils.Collections;
+
 namespace NeoModLoader.services;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public class DoNotDebug : Attribute{}
@@ -10,8 +13,8 @@ public static class DebugService
 {
     static DebugService()
     {
-        Logger = new LogDebugger(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)));
-        ExceptionHandler = new Debugger<Exception>(null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
+        Logger = new Debugger<object[]>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)), null, null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook2)));
+        ExceptionHandler = new Debugger<Exception>(null, null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
         Profiler = new Debugger<long>(AccessTools.Method(typeof(Hooks), nameof(Hooks.prefix)), AccessTools.Method(typeof(Hooks), nameof(Hooks.postfix)));
     }
     class Hooks
@@ -48,32 +51,6 @@ public static class DebugService
         }
         return true;
     }
-
-    public class LogDebugger : Debugger<object[]>
-    {
-        public LogDebugger(MethodInfo method) : base(method){}
-        private static HarmonyMethod Prefix2 =
-            new HarmonyMethod(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook2)));
-        public override void Attach(MethodBase method)
-        {
-            try
-            {
-                Patcher.Patch(method, Prefix);
-            }
-            catch (Exception e)
-            {
-                LogService.LogError($"Failed to attach main logger to {method.FullDescription()}. using backup logger");
-                try
-                {
-                    Patcher.Patch(method, Prefix2);
-                }
-                catch (Exception ee)
-                {
-                    LogService.LogError($"Failed to attach backup logger to {method.FullDescription()} due to {ee}");
-                }
-            }
-        }
-    }
     public class Debugger<T>
     {
         public void AddHandler(Action<MethodBase, T>  handler)
@@ -81,15 +58,23 @@ public static class DebugService
             Handler += handler;
         }
         public Action<MethodBase, T> Handler;
-        public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Finalizer = null)
+        public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Transpiler = null, MethodInfo Finalizer = null, MethodInfo Prefix2 = null)
         {
             if (Prefix is not null)
             {
                 this.Prefix = new HarmonyMethod(Prefix);
             }
+            if (Prefix2 is not null)
+            {
+                this.Prefix2 = new HarmonyMethod(Prefix2);
+            }
             if (Postfix is not null)
             {
                 this.Postfix = new HarmonyMethod(Postfix);
+            }
+            if (Transpiler is not null)
+            {
+                this.Transpiler = new HarmonyMethod(Postfix);
             }
             if (Finalizer is not null)
             {
@@ -97,8 +82,10 @@ public static class DebugService
             }
         }
         protected HarmonyMethod Prefix;
+        protected HarmonyMethod Prefix2;
         protected HarmonyMethod Postfix;
         protected HarmonyMethod Finalizer;
+        protected HarmonyMethod Transpiler;
         public void Attach(Assembly assembly, Func<MethodBase, bool> predicate = null)
         {
             foreach (var Type in AccessTools.GetTypesFromAssembly(assembly))
@@ -128,20 +115,28 @@ public static class DebugService
                 Attach(method);
             }
         }
-        public virtual void Attach(MethodBase method)
+        public void Attach(MethodBase method)
         {
             try
             {
-                Patcher.Patch(method, Prefix, Postfix, null, Finalizer, null);
+                Patcher.Patch(method, Prefix, Postfix, Transpiler, Finalizer, null);
             }
             catch (Exception e)
             {
-                LogService.LogError($"Failed to attach debugger to {method.FullDescription()} due to {e}");
+                LogService.LogError($"Failed to attach debugger to {method.FullDescription()}");
+                try
+                {
+                    Patcher.Patch(method, Prefix2, Postfix, Transpiler, Finalizer, null);
+                }
+                catch (Exception ee)
+                {
+                    LogService.LogError($"Failed to attach backup debugger to {method.FullDescription()} due to {ee}");
+                }
             }
         }
     }
     static readonly Harmony Patcher = new (Others.harmony_id);
-    public static readonly LogDebugger Logger;
+    public static readonly Debugger<object[]> Logger;
     public static readonly Debugger<Exception> ExceptionHandler;
     public static readonly Debugger<long> Profiler;
     public static readonly Func<MethodBase, bool> DefaultPredicate = method => !method.IsDefined(typeof(DoNotDebug), true) && !method.DeclaringType!.IsDefined(typeof(DoNotDebug), true);
@@ -149,7 +144,7 @@ public static class DebugService
 public class HarmonyPatcher //any harmony patches causing you trouble? this lets you single them out!
 {
     private static readonly FieldInfo containerAttributes = AccessTools.Field(typeof(PatchClassProcessor), "containerAttributes");
-    Dictionary<Type, PatchClassProcessor> Processors = new();
+    private HashList<Type> types = new();
     private Harmony harmony;
     public HarmonyPatcher(string ID)
     {
@@ -166,37 +161,65 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
     }
     public bool Add(Type type)
     {
-        var processor = harmony.CreateClassProcessor(type, true);
-        if (containerAttributes.GetValue(processor) is null)
+        if (!type.HasPatches())
         {
             return false;
         }
-        Processors.Add(type, processor);
+        types.Add(type);
         return true;
     }
+    /// <summary>
+    /// patches a type only if it is in the list
+    /// </summary>
     public void Patch(Type type)
     {
-        Processors[type].Patch();
+        if (types.Remove(type))
+        {
+            patch(type);
+        }
+    }
+    void patch(Type type)
+    {
+        harmony.CreateClassProcessor(type, true).Patch();
+        harmony.CreateClassProcessor(type, false).Patch();
     }
     public void PatchAll()
     {
-        foreach (var processor in Processors.Values)
+        foreach (var type in types)
         {
-            processor.Patch();
+           patch(type);
         }
-        Processors.Clear();
+        types.Clear();
     }
-    public IEnumerable<Type> Types => Processors.Keys;
-    public bool PatchRandom(out Type type)
+    public void Sort(IComparer<Type> comparer)
+    {
+        types.Sort(comparer);
+    }
+    public IEnumerable<Type> Types => types;
+    /// <summary>
+    /// patches using the next type
+    /// </summary>
+    public bool PatchNext(out Type type)
     {
         type = null;
-        if (Processors.Count == 0)
+        if (types.Count == 0)
         {
             return false;
         }
-        type = Processors.ToList().GetRandom().Key;
-        Processors.Remove(type);
+        type = types[^1];
         Patch(type);
         return true;
     }
+    public bool PatchRandom(out Type type)
+    {
+        type = null;
+        if (types.Count == 0)
+        {
+            return false;
+        }
+        type = types.GetRandom();
+        Patch(type);
+        return true;
+    }
+    
 }

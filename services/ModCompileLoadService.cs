@@ -84,9 +84,13 @@ public static class ModCompileLoadService
         var embeded_resources = new List<ResourceDescription>();
 
         bool is_ncms_mod = false;
-        if (Config.isAndroid)
+        if (Others.IsIL2CPP)
         {
             preprocessor_symbols.Add("IL2CPP");
+        }
+        else
+        {
+           syntaxTrees.Add(CSharpSyntaxTree.ParseText("global using Il2CppSystem = System;"));
         }
         var parse_option = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessor_symbols);
 

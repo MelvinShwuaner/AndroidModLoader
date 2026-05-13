@@ -1,5 +1,4 @@
 using Il2CppSystem.Collections;
-using Sys = Il2CppSystem;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;

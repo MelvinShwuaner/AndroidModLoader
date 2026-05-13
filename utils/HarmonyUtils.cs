@@ -57,6 +57,21 @@ public static class HarmonyUtils
         return pCodes.FirstOrDefault(pPredictor.Predict);
     }
 
+    public static bool IsCall(this CodeInstruction instruct)
+    {
+        return instruct.opcode == OpCodes.Call || instruct.opcode == OpCodes.Callvirt ||
+               instruct.opcode == OpCodes.Newobj;
+    }
+    public static IEnumerable<MethodBase> GetCalledMethods(MethodBase method)
+    {
+        foreach (var instruct in PatchProcessor.GetOriginalInstructions(method))
+        {
+            if (instruct.IsCall())
+            {
+               yield return instruct.operand as MethodBase;
+            }   
+        }
+    }
     /// <summary>
     /// </summary>
     /// <param name="pCodes"></param>
@@ -89,7 +104,22 @@ public static class HarmonyUtils
     {
         BaseInstPredictor._init();
     }
-
+    public static bool HasPatches(this Type type)
+    {
+        if (type.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
+        {
+            return true;
+        }
+        return type.GetMethods(BindingFlags.Public |
+                               BindingFlags.NonPublic |
+                               BindingFlags.Static)
+            .Any(m =>
+                m.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyPrefix), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyPostfix), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyTranspiler), true).Length > 0 ||
+                m.GetCustomAttributes(typeof(HarmonyFinalizer), true).Length > 0);
+    }
     public static void Add(this List<CodeInstruction> list, OpCode opcode, object operand = null)
     {
         list.Add(new CodeInstruction(opcode, operand));
