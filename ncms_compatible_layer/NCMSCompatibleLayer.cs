@@ -8,7 +8,6 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.ncms_compatible_layer
 {
-    
 #pragma warning disable CS0618
     internal static class NCMSCompatibleLayer
     {
@@ -47,7 +46,7 @@ namespace NeoModLoader.ncms_compatible_layer
                 }
 
                 OnDebug();
-            }));
+            });
         }
 
         public class EmbededResources
