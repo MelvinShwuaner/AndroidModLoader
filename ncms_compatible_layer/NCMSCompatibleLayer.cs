@@ -8,6 +8,7 @@ using NeoModLoader.services;
 
 namespace NeoModLoader.ncms_compatible_layer
 {
+    
 #pragma warning disable CS0618
     internal static class NCMSCompatibleLayer
     {
@@ -23,7 +24,7 @@ namespace NeoModLoader.ncms_compatible_layer
     using UnityEngine.UI;
     using NeoModLoader.services;
     using System.Collections.Generic;
-    using static NeoModLoader.AndroidCompatibilityModule.Converter;
+   
 
     internal class Mod
     {
@@ -37,7 +38,7 @@ namespace NeoModLoader.ncms_compatible_layer
         {
             OnDebug += new Action(() => { LogService.LogInfo($""Debug toggled for mod {Info.Name}""); });
 
-            button.onClick.AddListener(C<UnityAction>(() =>
+            button.onClick.AddListener(() =>
             {
                 if (debugClicked < 10)
                 {
