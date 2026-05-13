@@ -35,7 +35,7 @@ public static partial class Extentions
     {
 	    return manager._container._hashSet;
     }
-    public static Il2CppSystem.Collections.Generic.HashSet<A> Get<A, B>(this MetaSystemManager<A, B> manager) where A : MetaObject<B>, new() where B : MetaObjectData, new()
+    public static Il2CppSystem.Collections.Generic.HashSet<A> Get<A, B>(this CoreSystemManager<A, B> manager) where A : CoreSystemObject<B>, new() where B : BaseSystemData, new()
     {
 	    return manager._hashset;
     }

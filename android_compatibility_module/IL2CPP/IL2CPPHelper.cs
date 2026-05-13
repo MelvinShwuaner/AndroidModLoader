@@ -1,8 +1,6 @@
-using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using NeoModLoader.General;
 using UnityEngine;
 using Sys = Il2CppSystem;
 namespace NeoModLoader.AndroidCompatibilityModule;

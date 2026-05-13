@@ -27,7 +27,7 @@ public static partial class Extentions
     }
     public static T[] AddToArray<T>(this Il2CppArrayBase<T> sequence, T item)
     {
-        return ((IEnumerable<T>) sequence).AddItem<T>(item).ToArray<T>();
+        return sequence.AddItem(item).ToArray();
     }
     public static IEnumerable AsEnumerable(this Il2CppObjectBase obj)
     {
