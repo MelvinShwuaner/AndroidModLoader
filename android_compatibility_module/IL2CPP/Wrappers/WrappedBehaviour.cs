@@ -93,7 +93,7 @@ public class WrappedBehaviour
     {
         Type type = WrapperHelper.GetCallingType();
         IEnumerator enumerator = (IEnumerator)type.GetMethod(method)!.Invoke(this, param == null ? null : [param]);
-        Coroutine coroutine =  StartCoroutine(enumerator);
+        Coroutine coroutine = StartCoroutine(enumerator);
         Handler.AddCoroutine(type, method, coroutine);
         return coroutine;
     }
@@ -103,28 +103,28 @@ public class WrappedBehaviour
         Coroutine coroutine = Handler.GetCoroutine(type, method);
         if (coroutine != null)
         {
-            StopCoroutine(coroutine);
+            Wrapper.StopCoroutine(coroutine);
         }
     }
-    private WrappedMethodHandler Handler = new();
-    public void InvokeRepeating(string name, float time, float repeatRate)
+    protected void InvokeRepeating(string name, float time, float repeatRate)
     {
         Type type = WrapperHelper.GetCallingType();
         Handler.SetInvokation(type, name, new WrappedMethodHandler.Invokation(time, repeatRate));
     }
-    public void Invoke(string name, float time)
+    protected void CancelInvoke(string name)
+    {
+        Type type = WrapperHelper.GetCallingType();
+        Handler.StopInvokation(type, name);
+    }
+    protected void Invoke(string name, float time)
     {
         Type type = WrapperHelper.GetCallingType();
         Handler.SetInvokation(type, name, new WrappedMethodHandler.Invokation(time, -1));
     }
+    private WrappedMethodHandler Handler = new();
     internal void HandleInvokations(float elapsed)
     {
         Handler.CheckInvokations(elapsed, this);
-    }
-    public void CancelInvoke(string name)
-    {
-        Type type = WrapperHelper.GetCallingType();
-        Handler.StopInvokation(type, name);
     }
     public static T Instantiate<T>(T obj, Transform parent = null, bool positionstays = false) where T : Object
     {

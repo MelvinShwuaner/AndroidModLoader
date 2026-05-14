@@ -66,7 +66,7 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         ongui?.Invoke(WrappedBehaviour);
     }
     [HideFromIl2Cpp]
-    public WrappedAction GetWrappedMethod(string Method)
+    WrappedAction GetWrappedMethod(string Method)
     {
         return WrappedMethodCollection.Get(WrappedType)[Method];
     }

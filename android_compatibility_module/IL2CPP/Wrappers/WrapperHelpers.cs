@@ -187,7 +187,7 @@ namespace NeoModLoader.AndroidCompatibilityModule
 				WrapperResolver.ResolveInstantiate(comp.gameObject, clone.Cast<Component>().gameObject);
 			}
 		}
-		public static WrappedAction CreateWrappedAction(MethodInfo method)
+		static WrappedAction CreateWrappedAction(MethodInfo method)
 		{
 			var param = Expression.Parameter(typeof(WrappedBehaviour), "instance");
 			var call = Expression.Call(
@@ -450,10 +450,10 @@ namespace NeoModLoader.AndroidCompatibilityModule
 			{
 				var store = Get(method);
 				store.Invokation = invokation;
-				store.Method ??= CreateWrappedAction(type.GetMethod(method));
+				store.Method ??= WrappedMethodCollection.Get(type)[method];
 			}
 
-			public MethodStore Get(string method)
+			MethodStore Get(string method)
 			{
 				if (!Stores.TryGetValue(method, out var store))
 				{
