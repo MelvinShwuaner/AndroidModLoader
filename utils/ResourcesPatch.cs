@@ -134,7 +134,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(System.Type)
+        typeof(string), typeof(SysType)
     })]
     private static void LoadAll_Prefix(ref string path)
     {
@@ -159,9 +159,9 @@ public static class ResourcesPatch
    [HarmonyPostfix]
    [HarmonyPatch(typeof(Resources), nameof(Resources.LoadAll), new Type[]
     {
-        typeof(string), typeof(System.Type)
+        typeof(string), typeof(SysType)
     })]
-   private static void LoadAll_Postfix(ref ObjectArray __result, string path, System.Type systemTypeInstance)
+   private static void LoadAll_Postfix(ref ObjectArray __result, string path, SysType systemTypeInstance)
    {
        if (tree == null) return;
 
@@ -184,7 +184,7 @@ public static class ResourcesPatch
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(System.Type)
+        typeof(string), typeof(SysType)
     })]
     private static void Load_Prefix(ref string path)
     {
@@ -209,10 +209,10 @@ public static class ResourcesPatch
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Resources), nameof(Resources.Load), new Type[]
     {
-        typeof(string), typeof(System.Type)
+        typeof(string), typeof(SysType)
     })]
     private static Object Load_Postfix(Object __result, string path,
-        System.Type systemTypeInstance)
+        SysType systemTypeInstance)
     {
         if (tree == null) return __result;
         var new_result = tree.Get(path);
@@ -379,7 +379,7 @@ public static class ResourcesPatch
 
         public ResourceTreeNode parent { get; internal set; }
 
-        public List<Object> GetAllObjects(System.Type systemTypeInstance)
+        public List<Object> GetAllObjects(SysType systemTypeInstance)
         {
             var result = new List<Object>(objects.Count);
 

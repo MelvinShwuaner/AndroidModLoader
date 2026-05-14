@@ -52,9 +52,9 @@ public static class IL2CPPHelper
     {
         return arr;
     }
-    public static Sys.Collections.Generic.List<T> L<T>(params T[] arr)
+    public static Il2CppSystem.Collections.Generic.List<T> L<T>(params T[] arr)
     {
-        Sys.Collections.Generic.List<T> list = new();
+        Il2CppSystem.Collections.Generic.List<T> list = new();
         foreach (var t in arr)
         {
             list.Add(t);
@@ -69,9 +69,9 @@ public static class IL2CPPHelper
             .MakeGenericMethod(type);
         return (Il2CppObjectBase)method.Invoke(obj, null);
     }
-    public static Sys.Collections.Generic.HashSet<T> H<T>(params T[] arr)
+    public static Il2CppSystem.Collections.Generic.HashSet<T> H<T>(params T[] arr)
     {
-        Sys.Collections.Generic.HashSet<T> list = new();
+        Il2CppSystem.Collections.Generic.HashSet<T> list = new();
         foreach (var t in arr)
         {
             list.Add(t);

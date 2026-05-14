@@ -13,7 +13,7 @@ public static class DebugService
 {
     static DebugService()
     {
-        Logger = new Debugger<object[]>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)), null, null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook2)));
+        Logger = new Debugger<object[]>(AccessTools.Method(typeof(Hooks), nameof(Hooks.loghook)));
         ExceptionHandler = new Debugger<Exception>(null, null, null, AccessTools.Method(typeof(Hooks), nameof(Hooks.finalizer)));
         Profiler = new Debugger<long>(AccessTools.Method(typeof(Hooks), nameof(Hooks.prefix)), AccessTools.Method(typeof(Hooks), nameof(Hooks.postfix)));
     }
@@ -22,10 +22,6 @@ public static class DebugService
         public static void loghook(MethodBase __originalMethod, object[] __args)
         {
             Logger.Handler(__originalMethod, __args);
-        }
-        public static void loghook2(MethodBase __originalMethod)
-        {
-            Logger.Handler(__originalMethod, null);
         }
         public static void prefix(out long __state)
         {
@@ -58,15 +54,11 @@ public static class DebugService
             Handler += handler;
         }
         public Action<MethodBase, T> Handler;
-        public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Transpiler = null, MethodInfo Finalizer = null, MethodInfo Prefix2 = null)
+        public Debugger(MethodInfo Prefix = null, MethodInfo Postfix = null, MethodInfo Transpiler = null, MethodInfo Finalizer = null)
         {
             if (Prefix is not null)
             {
                 this.Prefix = new HarmonyMethod(Prefix);
-            }
-            if (Prefix2 is not null)
-            {
-                this.Prefix2 = new HarmonyMethod(Prefix2);
             }
             if (Postfix is not null)
             {
@@ -82,7 +74,6 @@ public static class DebugService
             }
         }
         protected HarmonyMethod Prefix;
-        protected HarmonyMethod Prefix2;
         protected HarmonyMethod Postfix;
         protected HarmonyMethod Finalizer;
         protected HarmonyMethod Transpiler;
@@ -123,15 +114,7 @@ public static class DebugService
             }
             catch (Exception e)
             {
-                LogService.LogError($"Failed to attach debugger to {method.FullDescription()}");
-                try
-                {
-                    Patcher.Patch(method, Prefix2, Postfix, Transpiler, Finalizer, null);
-                }
-                catch (Exception ee)
-                {
-                    LogService.LogError($"Failed to attach backup debugger to {method.FullDescription()} due to {ee}");
-                }
+                LogService.LogError($"Failed to attach debugger to {method.FullDescription()} due to {e}");
             }
         }
     }
