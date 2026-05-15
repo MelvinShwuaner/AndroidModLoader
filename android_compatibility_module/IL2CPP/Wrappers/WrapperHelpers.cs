@@ -212,6 +212,10 @@ namespace NeoModLoader.AndroidCompatibilityModule
 			}
 			return null;
 		}
+		public static MethodInfo GetWrappedMethod(this Type type, string Method, Type param)
+		{
+			return type.GetMethod(Method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, param == null ? Type.EmptyTypes : [param]);
+		}
 		public static T Instantiate<T>(T original, Transform parent, bool worldPositionStays = true)
 			where T : WrappedBehaviour
 		{
