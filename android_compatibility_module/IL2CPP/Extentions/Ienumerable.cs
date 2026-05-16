@@ -33,6 +33,10 @@ public static partial class Extentions
     {
         return obj.Cast<IEnumerable>();
     }
+    public static Il2CppSystem.Collections.Generic.IEnumerable<T> AsEnumerable<T>(this Il2CppObjectBase obj)
+    {
+        return obj.Cast<Il2CppSystem.Collections.Generic.IEnumerable<T>>();
+    }
     public static T FirstOrDefault<T>(this Il2CppObjectBase obj)
     {
         var enumerable = obj.Cast<Il2CppSystem.Collections.Generic.IEnumerable<T>>();

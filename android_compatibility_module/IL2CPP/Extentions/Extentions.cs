@@ -56,16 +56,19 @@ public static partial class Extentions
         }
         asset.addGenome(arr);
     }
-    public static IEnumerable<T> OfType<T>(this Il2CppObjectBase list) where T : Il2CppObjectBase
+    /// <summary>
+    /// casts objects using il2cpp
+    /// </summary>
+    public static IEnumerable<T> OfType<T>(this IEnumerable<Il2CppObjectBase> list)where T : Il2CppObjectBase
     {
-	    foreach (var obj in list.AsEnumerable())
-	    {
-		    var cast = obj.TryCast<T>();
-		    if (cast != null)
-		    {
-			    yield return cast;
-		    }
-	    }
+        foreach (Il2CppObjectBase obj in list)
+        {
+            var cast = obj.TryCast<T>();
+            if (cast != null)
+            {
+                yield return cast;
+            }
+        }
     }
     /// <summary>
     /// is the type il2cpp compatible
