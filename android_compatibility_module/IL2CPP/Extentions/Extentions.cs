@@ -42,7 +42,7 @@ public static partial class Extentions
     public static nint Clone(this GUIStyle orig)
     {
 	    GUIStyle style = new GUIStyle(IL2CPP.il2cpp_object_new(Il2CppClassPointerStore<GUIStyle>.NativeClassPtr));
-	    style.m_Ptr = GUIStyle.Internal_Copy(orig, style);
+	    style.m_Ptr = GUIStyle.Internal_Copy(style, orig);
 	    return style.Pointer;
     }
 
