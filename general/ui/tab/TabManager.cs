@@ -2,6 +2,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using NeoModLoader.AndroidCompatibilityModule;
 using NeoModLoader.constants;
+using NeoModLoader.services;
 using NeoModLoader.utils;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -25,6 +26,7 @@ public static class TabManager
     private static readonly Transform tab_entry_container =
         CanvasMain.instance.canvas_ui.transform.Find("CanvasBottom/BottomElements/BottomElementsMover/TabsButtons");
 
+    private static GridLayoutGroup tab_button_layout => tab_entry_container.GetComponent<GridLayoutGroup>();
     private static readonly Transform tab_container = CanvasMain.instance.canvas_ui.transform.Find(
         "CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View/Viewport/Content/Power Tabs");
 
@@ -64,6 +66,7 @@ public static class TabManager
         TabCreatures.Init();
         TabNature.Init();
         TabOther.Init();
+        tab_button_layout.startCorner = GridLayoutGroup.Corner.LowerLeft;
     }
 
     [HarmonyPrefix, HarmonyPatch(typeof(PowerTabController), nameof(PowerTabController.getNext))]
@@ -146,7 +149,6 @@ public static class TabManager
 
     private static void _updateTabEntryRectAs(Button tab, int index)
     {
-        return;
         int row_nr = Math.Min(tab_count_each_line, tab_entries.Count);
         int pos_x = (index % row_nr) - row_nr / 2;
         int pos_y = index / row_nr;

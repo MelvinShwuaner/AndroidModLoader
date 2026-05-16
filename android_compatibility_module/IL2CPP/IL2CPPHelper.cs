@@ -10,7 +10,7 @@ public static class IL2CPPHelper
 {
     public static GameObject CreateGameObject(string name, params Type[] types)
     {
-        Il2CppSystem.Type[] Types = new Il2CppSystem.Type[types.Length];
+        Il2CppReferenceArray<SysType> Types = new Il2CppReferenceArray<SysType>((long)types.Length);
         List<Type> WrappedTypes = new List<Type>();
         for(int i = 0; i< types.Length; i++)
         {
@@ -25,7 +25,7 @@ public static class IL2CPPHelper
             }
         }
         GameObject obj = new GameObject(name, Types);
-        if (WrappedTypes.Count <= 0) return obj;
+        if (WrappedTypes.Count == 0) return obj;
         var behs = obj.GetComponents<Il2CPPBehaviour>();
         for (int i = 0; i < WrappedTypes.Count; i++)
         {
