@@ -129,6 +129,7 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
     private static readonly FieldInfo containerAttributes = AccessTools.Field(typeof(PatchClassProcessor), "containerAttributes");
     private HashList<Type> types = new();
     private Harmony harmony;
+    public int Remaining => types.Count;
     public HarmonyPatcher(string ID)
     {
         harmony = new Harmony(ID);
