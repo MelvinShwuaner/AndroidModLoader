@@ -48,10 +48,6 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
 
     public void Update()
     {
-        if (WrappedBehaviour == null)
-        {
-            return;
-        }
         WrappedBehaviour.HandleInvokations(Time.deltaTime);
         update?.Invoke(WrappedBehaviour);
     }
@@ -71,7 +67,7 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         return WrappedMethodCollection.Get(WrappedType)[Method];
     }
     [HideFromIl2Cpp]
-    internal B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour
+    public B SetWrappedBehaviour<B>(B Behaviour) where B : WrappedBehaviour
     {
         WrappedBehaviour = Behaviour;
         WrappedType = Behaviour.GetType();
@@ -92,12 +88,12 @@ public sealed class Il2CPPBehaviour : MonoBehaviour
         return Behaviour;
     }
     [HideFromIl2Cpp]
-    internal WrappedBehaviour CreateWrapperIfNull(Type WrappedType)
+    public WrappedBehaviour CreateWrapperIfNull(Type WrappedType)
     {
         return WrappedBehaviour ?? SetWrappedBehaviour((WrappedBehaviour)Activator.CreateInstance(WrappedType));
     }
     [HideFromIl2Cpp]
-    internal W CreateWrapper<W>() where W : WrappedBehaviour
+    public W CreateWrapper<W>() where W : WrappedBehaviour
     {
         return SetWrappedBehaviour(Activator.CreateInstance<W>());
     }

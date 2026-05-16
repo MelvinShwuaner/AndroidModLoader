@@ -37,16 +37,7 @@ public static class GUIHelper
         {
             return GUIStubs.DoWindow(id, clientRect, func, text, GUI.skin.window, options);
         }
-#endif
-        public static Rect Window(int id, Rect clientRect, GUI.WindowFunction  func, string text,  params GUILayoutOption[] options)
-        {
-            return GUILayout.Window(id, clientRect, func, text, options);
-        }
-        public static Rect Window(int id, Rect clientRect, GUI.WindowFunction func, GUIContent text, params GUILayoutOption[] options)
-        {
-            return GUILayout.Window(id, clientRect, func, text, options);
-        }
-        public static GUILayoutOption MinWidth(float minWidth) //cuz the original functions dont fucking work for the most BS reason
+         public static GUILayoutOption MinWidth(float minWidth) //cuz the original functions dont fucking work for the most BS reason
         {
             return new GUILayoutOption(GUILayoutOption.Type.minWidth, minWidth);
         }
@@ -74,6 +65,15 @@ public static class GUIHelper
         public static GUILayoutOption ExpandHeight(bool expand)
         {
             return new GUILayoutOption(GUILayoutOption.Type.stretchHeight, (expand ? 1 : 0));
+        }
+#endif
+        public static Rect Window(int id, Rect clientRect, GUI.WindowFunction  func, string text,  params GUILayoutOption[] options)
+        {
+            return GUILayout.Window(id, clientRect, func, text, options);
+        }
+        public static Rect Window(int id, Rect clientRect, GUI.WindowFunction func, GUIContent text, params GUILayoutOption[] options)
+        {
+            return GUILayout.Window(id, clientRect, func, text, options);
         }
     }
     #if IL2CPP

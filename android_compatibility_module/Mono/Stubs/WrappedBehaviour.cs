@@ -1,6 +1,4 @@
-
-using UnityEngine;
 namespace NeoModLoader.AndroidCompatibilityModule;
-public class WrappedBehaviour : MonoBehaviour{
- public MonoBehaviour Wrapper => this;
+public class WrappedBehaviour : IL2CPPBehaviour{
+ public IL2CPPBehaviour Wrapper => this;
 }

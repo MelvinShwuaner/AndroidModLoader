@@ -10,5 +10,16 @@ namespace Il2CppInterop.Runtime.Attributes
 
 namespace Il2CppInterop.Runtime.Injection
 {
-    
+    public class ClassInjector
+    {
+        public static nint DerivedConstructorPointer<T>()
+        {
+            return 67;
+        }
+
+        public static void DerivedConstructorBody(object obj)
+        {
+            
+        }
+    }
 }

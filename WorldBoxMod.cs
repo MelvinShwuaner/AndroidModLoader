@@ -16,18 +16,15 @@ namespace NeoModLoader;
 /// Main class
 /// </summary>
 [MelonLoader.RegisterTypeInIl2Cpp]
-public class WorldBoxMod : MonoBehaviour
+public class WorldBoxMod : BaseBehaviour
 {
-#if IL2CPP
     public WorldBoxMod(IntPtr ptr) : base(ptr)
     {
     }
-
     public WorldBoxMod() : base(ClassInjector.DerivedConstructorPointer<WorldBoxMod>())
     {
         ClassInjector.DerivedConstructorBody(this);
     }
-#endif
     /// <summary>
     /// All successfully loaded mods.
     /// </summary>
