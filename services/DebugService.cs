@@ -126,10 +126,11 @@ public static class DebugService
 }
 public class HarmonyPatcher //any harmony patches causing you trouble? this lets you single them out!
 {
-    private static readonly FieldInfo containerAttributes = AccessTools.Field(typeof(PatchClassProcessor), "containerAttributes");
+    public Action<Type, Exception?> Logger;
     private HashList<Type> types = new();
     private Harmony harmony;
     public int Remaining => types.Count;
+    
     public HarmonyPatcher(string ID)
     {
         harmony = new Harmony(ID);
@@ -162,10 +163,34 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
             patch(type);
         }
     }
+    /// <summary>
+    /// patches a number of types
+    /// </summary>
+    /// <returns>true if there are still types remaining</returns>
+    public bool Patch(int Num)
+    {
+        for (int i = 0; i < Num; i++)
+        {
+            if (!PatchNext(out Type _))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
     void patch(Type type)
     {
-        harmony.CreateClassProcessor(type, true).Patch();
-        harmony.CreateClassProcessor(type, false).Patch();
+        Exception exception = null;
+        try
+        {
+            harmony.CreateClassProcessor(type, true).Patch();
+            harmony.CreateClassProcessor(type, false).Patch();
+        }
+        catch (Exception e)
+        {
+            exception = e;
+        }
+        Logger?.Invoke(type, exception);
     }
     public void PatchAll()
     {
@@ -205,5 +230,4 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
         Patch(type);
         return true;
     }
-    
 }

@@ -22,7 +22,9 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
         harmony = new Harmony(Others.harmony_id);
         Transpile(AccessTools.Method(typeof(GUILayout), nameof(GUILayout.Space)), SpaceFix);
         Transpile(AccessTools.Method(typeof(GUI), nameof(GUI.DrawTexture), [typeof(Rect), typeof(Texture), typeof(ScaleMode), typeof(bool), typeof(float), typeof(Color), typeof(Color), typeof(Color), typeof(Color), typeof(Vector4), typeof(Vector4), typeof(bool)]), DrawTextureFix);
-        Transpile(AccessTools.Method(typeof(GUILayout), nameof(GUILayout.FlexibleSpace)), FlexibleSpaceFix); }
+        Transpile(AccessTools.Method(typeof(GUILayout), nameof(GUILayout.FlexibleSpace)), FlexibleSpaceFix); 
+        harmony.PatchAll(typeof(Patches));
+    }
     static void Space(float pixels)
     {
         GUIUtility.CheckOnGUI();
@@ -113,7 +115,7 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
     public static void FlexibleSpace()
     {
         GUIUtility.CheckOnGUI();
-        GUILayoutUtility.GetRect(0.0f, 0.0f, spaceStyle, new GUILayoutOption((!GUILayoutUtility.current.topLevel.isVertical ? GUIHelper.Layout.ExpandWidth(true) : GUIHelper.Layout.ExpandHeight(true)).type, 10000));
+        GUILayoutUtility.GetRect(0.0f, 0.0f, spaceStyle, new GUILayoutOption((!GUILayoutUtility.current.topLevel.isVertical ? GUILayout.ExpandWidth(true) : GUILayout.ExpandHeight(true)).type, 10000));
         if (Event.current.type != EventType.Layout)
             return;
         GUILayoutUtility.current.topLevel.entries[GUILayoutUtility.current.topLevel.entries.Count - 1].consideredForMargin = false;
@@ -135,7 +137,6 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
         layoutedWindow = new LayoutedWindow(func, screenRect, content, options, style);
         return GUI.Window(id, screenRect, IL2CPPHelper.C<GUI.WindowFunction>(TempDoWindow), content, style);
     }
-
     private static LayoutedWindow layoutedWindow;
     static void TempDoWindow(int id)
     {
@@ -177,6 +178,69 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
             else
                 topLevel.ResetCursor();
             this.m_Func.Invoke(windowID);
+        }
+    }
+
+    static class Patches//cuz the original functions dont fucking work for the most BS reason
+    {
+        [HarmonyPatch(typeof(TextEditor), nameof(TextEditor.SaveBackup))]
+        [HarmonyPrefix]
+        public static bool SaveBackup(TextEditor __instance)
+        {
+            return false;
+        }
+        [HarmonyPatch(typeof(TextEditor), nameof(TextEditor.DetectFocusChange))]
+        [HarmonyPrefix]
+        public static bool DetectFocusChange(TextEditor __instance)
+        {
+            return false;
+        }
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.MinWidth))]
+        [HarmonyPrefix]
+        public static bool MinWidth(float minWidth, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.minWidth, minWidth);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.MaxWidth))]
+        [HarmonyPrefix]
+        public static bool MaxWidth(float maxWidth, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.maxWidth, maxWidth);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.MinHeight))]
+        [HarmonyPrefix]
+        public static bool MinHeight(float minHeight, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.minHeight, minHeight);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.MaxHeight))]
+        [HarmonyPrefix]
+        public static bool MaxHeight(float maxHeight, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.maxHeight, maxHeight);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.ExpandWidth))]
+        [HarmonyPrefix]
+        public static bool ExpandWidth(bool expand, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.stretchWidth, expand);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.ExpandHeight))]
+        [HarmonyPrefix]
+        public static bool ExpandHeight(bool expand, ref GUILayoutOption __result) 
+        {
+            __result = new GUILayoutOption(GUILayoutOption.Type.stretchHeight, expand);
+            return false;
         }
     }
 }

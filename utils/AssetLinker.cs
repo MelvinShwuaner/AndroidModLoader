@@ -25,7 +25,7 @@ namespace NeoModLoader.utils
                 var type = library.GetType();
                 if (type?.GetField("t", BindingFlags.NonPublic | BindingFlags.Instance)?.FieldType == Asset.GetType())
                 {
-                    type.GetMethod("add").Invoke(library, new object[] { Asset });
+                    type.GetMethod("add")!.Invoke(library, new object[] { Asset });
                     return;
                 }
             }

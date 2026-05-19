@@ -37,35 +37,6 @@ public static class GUIHelper
         {
             return GUIStubs.DoWindow(id, clientRect, func, text, GUI.skin.window, options);
         }
-         public static GUILayoutOption MinWidth(float minWidth) //cuz the original functions dont fucking work for the most BS reason
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.minWidth, minWidth);
-        }
-
-        public static GUILayoutOption MaxWidth(float maxWidth)
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.maxWidth, maxWidth);
-        }
-
-        public static GUILayoutOption MinHeight(float minHeight)
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.minHeight, minHeight);
-        }
-
-        public static GUILayoutOption MaxHeight(float maxHeight)
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.maxHeight, maxHeight);
-        }
-
-        public static GUILayoutOption ExpandWidth(bool expand)
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.stretchWidth, (expand ? 1 : 0));
-        }
-
-        public static GUILayoutOption ExpandHeight(bool expand)
-        {
-            return new GUILayoutOption(GUILayoutOption.Type.stretchHeight, (expand ? 1 : 0));
-        }
 #endif
         public static Rect Window(int id, Rect clientRect, GUI.WindowFunction  func, string text,  params GUILayoutOption[] options)
         {
