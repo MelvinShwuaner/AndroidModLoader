@@ -126,7 +126,8 @@ public static class DebugService
 }
 public class HarmonyPatcher //any harmony patches causing you trouble? this lets you single them out!
 {
-    public Action<Type, Exception?> Logger;
+    public Action<Type> Logger;
+    public Action<Exception> Handler; //always invoked after the logger
     private HashList<Type> types = new();
     private Harmony harmony;
     public int Remaining => types.Count;
@@ -180,7 +181,7 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
     }
     void patch(Type type)
     {
-        Exception exception = null;
+        Logger?.Invoke(type);
         try
         {
             harmony.CreateClassProcessor(type, true).Patch();
@@ -188,9 +189,8 @@ public class HarmonyPatcher //any harmony patches causing you trouble? this lets
         }
         catch (Exception e)
         {
-            exception = e;
+           Handler?.Invoke(e);
         }
-        Logger?.Invoke(type, exception);
     }
     public void PatchAll()
     {

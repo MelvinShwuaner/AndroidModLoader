@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
@@ -9,10 +10,6 @@ using UnityEngine.Events;
 using NeoModLoader.AndroidCompatibilityModule;
 public static partial class Extentions
 {
-	public static void doUnits(this WorldTile tile, Action<Actor> action)
-	{
-		tile.doUnits(action);
-	}
     public static bool IsValid(this Il2CppArrayBase arr)
     {
         return arr is { Length: > 0 };
@@ -30,31 +27,11 @@ public static partial class Extentions
 
         return -1;
     }
-
-    public static Il2CppSystem.Collections.Generic.HashSet<A> Get<A, B>(this SimSystemManager<A, B> manager) where A : BaseSimObject, new() where B : BaseObjectData, new()
-    {
-	    return manager._container._hashSet;
-    }
-    public static Il2CppSystem.Collections.Generic.HashSet<A> Get<A, B>(this CoreSystemManager<A, B> manager) where A : CoreSystemObject<B>, new() where B : BaseSystemData, new()
-    {
-	    return manager._hashset;
-    }
     public static nint Clone(this GUIStyle orig)
     {
 	    GUIStyle style = new GUIStyle(IL2CPP.il2cpp_object_new(Il2CppClassPointerStore<GUIStyle>.NativeClassPtr));
 	    style.m_Ptr = GUIStyle.Internal_Copy(style, orig);
 	    return style.Pointer;
-    }
-
-    public static void addGenome(this ActorAsset asset, params ValueTuple<string, float>[] pListGenomePartsIDs)
-    {
-        return; //what the fuck
-        Il2CppReferenceArray<Il2CppSystem.ValueTuple<string, float>> arr = new Il2CppReferenceArray<Il2CppSystem.ValueTuple<string, float>>((long)pListGenomePartsIDs.Length);
-        for (var i = 0; i < pListGenomePartsIDs.Length; i++)
-        {
-            arr[i] = pListGenomePartsIDs[i].C();
-        }
-        asset.addGenome(arr);
     }
     /// <summary>
     /// casts objects using il2cpp
@@ -77,16 +54,7 @@ public static partial class Extentions
     {
 	    if (typeof(Il2CppSystem.Object).IsAssignableFrom(type))
 		    return true;
-	    return type.IsPrimitive || type == typeof(string);
-    }
-    public static void setHoverAction(this TipButton button, Action action)
-    {
-	    button.hoverAction = action;
-    }
-
-    public static void setToggleAction(this GodPower button, Action<string> action)
-    {
-	    button.toggle_action = action;
+	    return type!.IsPrimitive || type == typeof(string);
     }
     //functions like listextention are useless to us now
     public static Component GetComponent(this GameObject obj, Type type, int index)
@@ -100,21 +68,16 @@ public static partial class Extentions
         Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
         return behaviour.CreateWrapper<T>();
     }
+    public static Coroutine StartCoroutine(this MonoBehaviour beh, IEnumerator enumerable)
+    {
+        return beh.StartCoroutine(enumerable.C());
+    }
     public static IEnumerable<Transform> GetChildren(this Transform transform)
     {
         for (int i = 0; i < transform.GetChildCount(); i++)
         {
             yield return transform.GetChild(i);
         }
-    }
-
-    public static void add(this AssetManager _, BaseMonoLibrary lib, string name)
-    {
-	    BaseMonoLibrary.add(lib);
-    }
-    public static void addListener(this NameInput input, Action<string> action)
-    {
-	    input.addListener(action);
     }
     public static T GetWrappedComponent<T>(this GameObject obj)
     {
@@ -132,6 +95,13 @@ public static partial class Extentions
     public static void AddListener<T>(this UnityEvent<T> action, Action<T> func){
         action.AddListener(func);
     }
+    public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
+    {
+        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
+        return behaviour.CreateWrapperIfNull(type);
+    }
+    //TODO: get rid of this BS
+    #region  TranspilerBullShit
     public static bool CanAssignTo(this Type derived, Type baseType)
     {
         while (derived != null)
@@ -148,13 +118,6 @@ public static partial class Extentions
         }
         return false;
     }
-    public static WrappedBehaviour AddComponent(this GameObject gameObject, Type type)
-    {
-        Il2CPPBehaviour behaviour = gameObject.AddComponent<Il2CPPBehaviour>();
-        return behaviour.CreateWrapperIfNull(type);
-    }
-    //TODO: get rid of this BS
-    #region  TranspilerBullShit
     public static string FileName(this Assembly assembly)
     {
         return Path.GetFileName(assembly.Location);

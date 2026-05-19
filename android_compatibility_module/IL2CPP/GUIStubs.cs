@@ -231,7 +231,7 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
         [HarmonyPrefix]
         public static bool ExpandWidth(bool expand, ref GUILayoutOption __result) 
         {
-            __result = new GUILayoutOption(GUILayoutOption.Type.stretchWidth, expand);
+            __result = new GUILayoutOption(GUILayoutOption.Type.stretchWidth, expand ? 1 : 0);
             return false;
         }
 
@@ -239,7 +239,7 @@ internal static class GUIStubs //fixes GUI stub methods because il2cppinterops b
         [HarmonyPrefix]
         public static bool ExpandHeight(bool expand, ref GUILayoutOption __result) 
         {
-            __result = new GUILayoutOption(GUILayoutOption.Type.stretchHeight, expand);
+            __result = new GUILayoutOption(GUILayoutOption.Type.stretchHeight, expand ? 1 : 0);
             return false;
         }
     }
