@@ -8,10 +8,19 @@ using NeoModLoader.AndroidCompatibilityModule;
 
 public static partial class Extentions
 {
-    public static Il2CppSystem.Collections.Generic.List<T> ToList<T>(this Il2CppObjectBase Object) where T : Il2CppSystem.Object
+    public static Il2CppSystem.Collections.Generic.List<T> ToList<T>(this Il2CppObjectBase Object)
     {
         var enumerable = Object.Cast<Il2CppSystem.Collections.Generic.IEnumerable<T>>();
         return enumerable.ToList();
+    }
+    public static Il2CppSystem.Collections.Generic.List<T> AsList<T>(this IEnumerable<T> Object)
+    {
+        Il2CppSystem.Collections.Generic.List<T> list = new();
+        foreach (var VARIABLE in Object)
+        {
+            list.Add(VARIABLE);
+        }
+        return list;
     }
     public static void UnionWith<T>(this HashSet<T> set, Il2CppSystem.Collections.Generic.IEnumerable<T> other)
     {

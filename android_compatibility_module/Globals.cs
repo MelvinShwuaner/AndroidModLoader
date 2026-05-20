@@ -6,4 +6,5 @@ global using BaseBehaviour = UnityEngine.MonoBehaviour;
 global using ObjectArray = UnityEngine.Object[];
 global using SysType = System.Type;
 global using BaseBehaviour = NeoModLoader.AndroidCompatibilityModule.BehaviourStub;
+global using Il2CppSystem = System;
 #endif

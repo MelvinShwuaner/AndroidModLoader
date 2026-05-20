@@ -16,6 +16,10 @@ public static class Extentions
     {
         return a;
     }
+    public static System.Collections.Generic.List<T> AsList<T>(this IEnumerable<T> Object)
+    {
+        return Object.ToList();
+    }
     public static HashSet<A> Get<A, B>(this SimSystemManager<A, B> manager) where A : BaseSimObject, ILoadable<B>, new() where B : BaseObjectData, new()
     {
         return manager._container._hashSet;

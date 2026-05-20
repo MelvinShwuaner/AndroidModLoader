@@ -8,6 +8,10 @@ public static partial class Extentions
     {
         input.addListener(action);
     }
+    public static void addOpposites<T>(this BaseTrait<T> trait, IEnumerable<string> pListIDS) where T : BaseTrait<T>
+    {
+        trait.addOpposites(pListIDS.AsList().AsEnumerable<string>());
+    }
     public static void add(this AssetManager _, BaseMonoLibrary lib, string name)
     {
         BaseMonoLibrary.add(lib);
