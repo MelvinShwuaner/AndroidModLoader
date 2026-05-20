@@ -19,7 +19,7 @@ public class HashList<T> : IList<T>, ISet<T>
         return GetEnumerator();
     }
 
-    public void Sort(IComparer<T> comparer)
+    public void Sort(IComparer<T> comparer = null)
     {
         list.Sort(comparer);
     }

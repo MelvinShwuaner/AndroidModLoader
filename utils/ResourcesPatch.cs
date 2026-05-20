@@ -87,7 +87,7 @@ public static class ResourcesPatch
     /// </summary>
     private static void LoadSoundFile(string abspath, string path)
     {
-        string JsonPath = File.ReadAllText(Path.GetDirectoryName(abspath) + "/" + Path.GetFileNameWithoutExtension(abspath) + ".json");
+        string JsonPath = Path.GetDirectoryName(abspath) + "/" + Path.GetFileNameWithoutExtension(abspath) + ".json";
         if(!SoundFilePlayer.ReadFromFile(JsonPath, out var player)){
             player.WriteToFile(JsonPath);
         }
