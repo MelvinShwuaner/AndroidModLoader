@@ -58,7 +58,6 @@ internal static class FMODPatches
     [HarmonyPatch(typeof(RuntimeManager), "Update")]
     static void Update()
     {
-        
         SFXGroup.setVolume(GetVolume(SoundType.Sound));
         MusicGroup.setVolume(GetVolume(SoundType.Music));
         UIGroup.setVolume(GetVolume(SoundType.UI));

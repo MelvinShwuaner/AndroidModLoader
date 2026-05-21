@@ -36,7 +36,7 @@ public static partial class Extentions
     public static Type C(this Il2CppSystem.Type type)
     {
         var name = type.AssemblyQualifiedName;
-        return Type.GetType(name) ?? Type.GetType("Il2Cpp"+name);
+        return Type.GetType("Il2Cpp"+name) ?? Type.GetType(name);
     }
     public static MonoException C(this Exception e)
     {
